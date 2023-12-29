@@ -5,11 +5,8 @@ const { color } = require('./utils')
 const { ind, eng } = require('./message/text/lang/')
 const HandleMsg = require('./HandleMsg')
 const fs = require('fs-extra')
+const fss = require('fs')
 const { Console } = require('console')
-const http = require('http');
-const ngrok = require('@ngrok/ngrok');
-
-
 /**
  * Uncache if there is file change
  * @param {string} module Module name or path
@@ -23,23 +20,6 @@ const nocache = (module, call = () => { }) => {
     })
 }
 
-// Create webserver
-http.createServer((req, res) => {
-res.writeHead(200, { 'Content-Type': 'text/html' });
-res.end('Congrats you have created an ngrok web server');
-}).listen(8080, () => console.log('Node.js web server at 8080 is running...'));
-
-// Get your endpoint online
-ngrok.connect({ addr: 8080, authtoken_from_env: true })
-.then(listener => console.log(`Ingress established at: ${listener.url()}`));
-
-const setting = JSON.parse(fs.readFileSync('./settings/setting.json'))
-
-let {
-    groupLimit,
-    memberLimit,
-    prefix
-} = setting
 /**
  * Uncache a module
  * @param {string} module Module name or path
@@ -60,9 +40,9 @@ require('./lib/menu.js')
 nocache('./lib/menu.js', module => console.log(`'${module}' Updated!`))
 const start = (piyo = new Client()) => {
     console.log(color(figlet.textSync('----------------', { horizontalLayout: 'default' })))
-    console.log(color(figlet.textSync('xKiwilx Bot', { font: 'Ghost', horizontalLayout: 'default' })))
+    console.log(color(figlet.textSync('Piyo Bot', { font: 'Ghost', horizontalLayout: 'default' })))
     console.log(color(figlet.textSync('----------------', { horizontalLayout: 'default' })))
-    console.log(color('[DEV]'), color('xKiwilx', 'yellow'))
+    console.log(color('[DEV]'), color('Piyo', 'yellow'))
     console.log(color('[~>>]'), color('BOT Started!', 'darkblue'))
 
     // Mempertahankan sesi agar tetap nyala
@@ -89,7 +69,7 @@ const start = (piyo = new Client()) => {
                 })
             } else {
                 await piyo.simulateTyping(chat.id, true).then(async () => {
-                    await piyo.sendText(chat.id, `Hai, Saya Whatsapp Bot Pintar.  Untuk memulai bot silahkan ketik ${prefix}menu`)
+                    await piyo.sendText(chat.id, `Hai anjg~, Saya Whatsapp Bot Pintar.  Untuk memulai bot silahkan ketik ${prefix}menu`)
                 })
             }
         }

@@ -32,10 +32,6 @@ db.defaults({ group: [] }).write()
 var tanggal = moment.tz('Asia/Jakarta').format('YYYY-MM-DD')
 
 const {
-    removeBackgroundFromImageBase64
-} = require('remove.bg')
-
-const {
     exec
 } = require('child_process')
 const {
@@ -48,8 +44,7 @@ const {
     translate,
     getLocationData,
     kbbi,
-    point,
-    rugaapi
+    rugaapi,
 } = require('./lib')
 
 const {
@@ -61,18 +56,16 @@ const {
 } = require('./utils')
 
 const { uploadImages } = require('./utils/fetcher')
-const { imagetotext } = require('./lib/rdt')
+const faceAnime = require('./lib/faceanime');
 
 //////////////////////////////FOLDER SYSTEM///////////////////////////////////
 const banned = JSON.parse(fs.readFileSync('./settings/banned.json'))
-const simi = JSON.parse(fs.readFileSync('./settings/simi.json'))
 const chatt = JSON.parse(fs.readFileSync('./settings/piyo.json'))
 const setting = JSON.parse(fs.readFileSync('./settings/setting.json'))
 const isPorn = JSON.parse(fs.readFileSync('./settings/antiporn.json'))
 const kuis = JSON.parse(fs.readFileSync('./settings/kuis.json'))
 const kuismtk = JSON.parse(fs.readFileSync('./settings/kuismtk.json'))
 const kuismtkk = JSON.parse(fs.readFileSync('./settings/kuismtkk.json'))
-const _point = JSON.parse(fs.readFileSync('./settings/point.json'))
 const code15 = JSON.parse(fs.readFileSync('./settings/code15.json'))
 const code30 = JSON.parse(fs.readFileSync('./settings/code30.json'))
 const code60 = JSON.parse(fs.readFileSync('./settings/code60.json'))
@@ -115,8 +108,18 @@ let {
     prefix,
     halal,
     lolhuman,
-    urllolhuman
+    urllolhuman,
+    urlcaliph,
+    caliph,
+    urlvihan,
+    akuari,
+    zoner,
+    urlzoner
 } = setting
+
+// Mendeklarasikan variabel global untuk menyimpan data pertanyaan dan jawaban
+let questionAnswerPairs = [];
+
 ///////////////////////////////API JSON///////////////////////////////////////
 const {
     apiNoBg,
@@ -168,6 +171,7 @@ module.exports = HandleMsg = async (piyo, message) => {
         const isBotGroupAdmins = groupAdmins.includes(botNumber) || false
         const { ind } = require('./message/text/lang/')
         const isAdmin = adminNumber.includes(sender.id)
+        const isDataURL = (s) => typeof s === 'string' && !!s.match(/^data:((?:\w+\/(?:(?!;).)+)?)((?:;[\w\W]*?[^;])*),(.+)$/);
         const gg = cc.includes(sender.id)
         const hh = bb.includes(sender.id)
         const userId = sender.id.substring(9, 13)
@@ -294,55 +298,10 @@ module.exports = HandleMsg = async (piyo, message) => {
             '10%',
             '5%'
         ]
-        /// [LEVELING]
-        const levelRole = point.getLevelingLevel(sender.id, _point)
-        var role = 'Copper V'
-        if (levelRole >= 5) {
-            role = 'Copper IV'
-        } else if (levelRole >= 10) {
-            role = 'Copper III'
-        } else if (levelRole >= 15) {
-            role = 'Copper II'
-        } else if (levelRole >= 20) {
-            role = 'Copper I'
-        } else if (levelRole >= 25) {
-            role = 'Silver V'
-        } else if (levelRole >= 30) {
-            role = 'Silver IV'
-        } else if (levelRole >= 35) {
-            role = 'Silver III'
-        } else if (levelRole >= 40) {
-            role = 'Silver II'
-        } else if (levelRole >= 45) {
-            role = 'Silver I'
-        } else if (levelRole >= 50) {
-            role = 'Gold V'
-        } else if (levelRole >= 55) {
-            role = 'Gold IV'
-        } else if (levelRole >= 60) {
-            role = 'Gold III'
-        } else if (levelRole >= 65) {
-            role = 'Gold II'
-        } else if (levelRole >= 70) {
-            role = 'Gold I'
-        } else if (levelRole >= 75) {
-            role = 'Platinum V'
-        } else if (levelRole >= 80) {
-            role = 'Platinum IV'
-        } else if (levelRole >= 85) {
-            role = 'Platinum III'
-        } else if (levelRole >= 90) {
-            role = 'Platinum II'
-        } else if (levelRole >= 95) {
-            role = 'Platinum I'
-        } else if (levelRole > 100) {
-            role = 'Exterminator'
-        }
         const nomormutualan = ['Isi nomor yang ada di registered']
         // [IDENTIFY]
         const isOwnerBot = ownerNumber.includes(pengirim)
         const isBanned = banned.includes(pengirim)
-        const isSimi = simi.includes(chatId)
         const isChat = chatt.includes(chatId)
         const isDetectorOn = _antilink.includes(chat.id)
         const usermp33 = usermp3.includes(sender.id)
@@ -377,6 +336,155 @@ module.exports = HandleMsg = async (piyo, message) => {
                 }
             }
             return serialNumber;
+        }
+
+        /////////////////////////////////GAME TRUTH OF DARE//////////////////////////////////
+        if (chats == 'truth') {
+            if (!isGroupMsg) return piyo.reply(from, 'Perintah ini hanya bisa digunakan didalam grup!', id);
+            
+            bb.push(sender.id);
+            fs.writeFileSync('./settings/truth.json', JSON.stringify(bb));
+        
+            fetch('https://raw.githubusercontent.com/Andrewij21/Truth-or-Dare/main/data.json')
+                .then(res => res.json()) // Parsing respon sebagai JSON
+                .then(data => {
+                    let truthArray = data.truth;
+                    let selectedTruth = truthArray[Math.floor(Math.random() * truthArray.length)];
+        
+                    piyo.reply(from, selectedTruth, id);
+                    piyo.reply(from, 'Jika pengirim sudah melakukan apa yang disuruh\nSilahkan temannya ketik *sudahtod*');
+                })
+        }
+        if (chats == 'Dare') {
+            await piyo.reply(from, 'hurufnya kecil semua ya', id)
+        }
+        if (chats == 'Truth') {
+            await piyo.reply(from, 'hurufnya kecil semua ya', id)
+        }
+        if (chats == 'dare') {
+            if (!isGroupMsg) return piyo.reply(from, 'Perintah ini hanya bisa digunakan didalam grup!', id);
+            
+            bb.push(sender.id);
+            fs.writeFileSync('./settings/dare.json', JSON.stringify(bb));
+        
+            fetch('https://raw.githubusercontent.com/Andrewij21/Truth-or-Dare/main/data.json')
+                .then(res => res.json()) // Parsing respon sebagai JSON
+                .then(data => {
+                    let dareArray = data.dare;
+                    let selectedDare = dareArray[Math.floor(Math.random() * dareArray.length)];
+        
+                    piyo.reply(from, selectedDare, id);
+                    piyo.reply(from, 'Jika pengirim sudah melakukan apa yang disuruh\nSilahkan temannya ketik *sudahtod*');
+                })
+        }
+        if (isGroupMsg) {
+            if (!gg && !hh) {
+                if (chats == 'sudahtod') {
+                    await piyo.sendText(from, `Terimakasih sudah menggunakan game truth or dare`, id)
+                    let sudah = cc.indexOf(sender.id);
+                    cc.splice(sudah, 1)
+                    fs.writeFileSync('./settings/truth.json', JSON.stringify(cc, null, 2))
+                    let belom = bb.indexOf(sender.id);
+                    bb.splice(belom, 1)
+                    fs.writeFileSync('./settings/dare.json', JSON.stringify(bb, null, 2))
+                }
+            }
+        }
+
+        /////////////////////////////////GAME Tebak Kata//////////////////////////////////
+        // if (chats === 'mainkankata') {
+        //     // if (!isGroupMsg) return piyo.reply(from, 'Perintah ini hanya bisa digunakan didalam grup!', id);
+        //     bb.push(sender.id);
+        //     fs.writeFileSync('./settings/pertanyaan.json', JSON.stringify(bb));
+        
+        //     fetch(`${urllolhuman}/api/tebak/kata?apikey=${lolhuman}`)
+        //         .then(res => res.json()) // Parsing respon sebagai JSON
+        //         .then(data => {
+        //             if (data && data.result) {
+        //                 const tkatas = data.result;
+        //                 if (tkatas && tkatas.pertanyaan) {
+        //                     piyo.reply(from, `*Pertanyaan* : ${tkatas.pertanyaan}`, id);
+        //                 }
+        //             }
+        //         })
+        // }
+        // if (chats === 'jawabankata') {
+        //     // if (!isGroupMsg) return piyo.reply(from, 'Perintah ini hanya bisa digunakan didalam grup!', id);
+        //     bb.push(sender.id);
+        //     fs.writeFileSync('./settings/jawaban.json', JSON.stringify(bb));
+        
+        //     fetch(`${urllolhuman}/api/tebak/kata?apikey=${lolhuman}`)
+        //         .then(res => res.json()) // Parsing respon sebagai JSON
+        //         .then(data => {
+        //             if (data && data.result) {
+        //                 const tkatas = data.result;
+        //                 if (tkatas && tkatas.jawaban) {
+        //                     piyo.reply(from, `*Jawaban* : ${tkatas.jawaban}`, id);
+        //                 }
+        //             }
+        //         })
+        // }
+        if (chats === 'mainkankata') {
+            bb.push(sender.id);
+            fs.writeFileSync('./settings/pertanyaankata.json', JSON.stringify(bb));
+        
+            fetch(`${urllolhuman}/api/tebak/kata?apikey=${lolhuman}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.result && data.result.pertanyaan) {
+                    const currentQuestion = data.result.pertanyaan;
+
+                    // Menyimpan pertanyaan ke dalam struktur data sementara
+                    questionAnswerPairs.push({ pertanyaan: currentQuestion, jawaban: null });
+
+                    piyo.reply(from, `*Pertanyaan* : ${currentQuestion}`, id);
+                }
+            })
+        } else if (chats === 'jawabankata') {
+            // Jika belum ada pertanyaan yang dijawab
+            if (questionAnswerPairs.length === 0 || questionAnswerPairs[0].jawaban !== null) {
+                piyo.reply(from, 'Anda harus memulai dengan perintah `mainkankata` terlebih dahulu atau pertanyaan sudah dijawab.', id);
+                return;
+            }
+        
+            bb.push(sender.id);
+            fs.writeFileSync('./settings/jawabankata.json', JSON.stringify(bb));
+        
+            fetch(`${urllolhuman}/api/tebak/kata?apikey=${lolhuman}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.result && data.result.jawaban) {
+                    const currentAnswer = data.result.jawaban;
+
+                    // Menetapkan jawaban ke dalam struktur data sementara
+                    questionAnswerPairs[0].jawaban = currentAnswer;
+
+                    // Memproses jawaban dan melakukan apa yang diperlukan (misalnya, menyimpan ke file JSON atau database)
+                    piyo.reply(from, `*Jawaban* : ${currentAnswer}`, id);
+
+                    // Membersihkan struktur data sementara setelah pertanyaan dijawab
+                    questionAnswerPairs = [];
+                }
+            })
+        }
+        if (chats === 'Mainkankata') {
+            await piyo.reply(from, 'hurufnya kecil semua ya', id)
+        }
+        if (chats === 'Jawabankata') {
+            await piyo.reply(from, 'hurufnya kecil semua ya', id)
+        }
+        if (isGroupMsg) {
+            if (!gg && !hh) {
+                if (chats === 'sudahkata') {
+                    await piyo.sendText(from, `Terimakasih sudah menggunakan game tebak kata`, id)
+                    let sudah = cc.indexOf(sender.id);
+                    cc.splice(sudah, 1)
+                    fs.writeFileSync('./settings/pertanyaan.json', JSON.stringify(cc, null, 2))
+                    let belom = bb.indexOf(sender.id);
+                    bb.splice(belom, 1)
+                    fs.writeFileSync('./settings/jawaban.json', JSON.stringify(bb, null, 2))
+                }
+            }
         }
 
         /////////////////////////////////STAY HALAL BROTHER//////////////////////////////////
@@ -699,14 +807,14 @@ module.exports = HandleMsg = async (piyo, message) => {
 
         if (chats == 'dlmp3') {
             if (!usermp3) return
-            await piyo.sendFile(from, `./media/audio/${sender.id}.mp3`, 'inifile.mp3', 'Nih Kak', id)
+            await piyo.sendFile(from, `./media/audio/${sender.id}.mp3`, 'inifile.mp3', '', id)
             fs.unlinkSync(`./media/audio/${sender.id}.mp3`)
             usermp3.splice(sender.id)
             fs.writeFileSync('./settings/usermp3.json', JSON.stringify(usermp3, null, 2))
         }
         if (chats == 'dlmp4') {
             if (!usermp4) return
-            await piyo.sendFile(from, `./media/video/${sender.id}.mp4`, 'inifile.mp4','Nih Kak', id)
+            await piyo.sendFile(from, `./media/video/${sender.id}.mp4`, 'inifile.mp4','', id)
             fs.unlinkSync(`./media/video/${sender.id}.mp4`)
             usermp4.splice(sender.id)
             fs.writeFileSync('./settings/usermp4.json', JSON.stringify(usermp4, null, 2))
@@ -942,9 +1050,6 @@ module.exports = HandleMsg = async (piyo, message) => {
                 case 'menuhiburan':
                     await piyo.sendText(from, menuId.textmenuhiburan(pushname))
                     break
-                case 'nulis': {
-                    await piyo.sendText(from, menuId.textmenunulis())
-                }
                     break
                 case 'mentol':
                     await piyo.sendText(from, menuId.textmentol(pushname))
@@ -963,9 +1068,6 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
                 case 'wibuarea':
                     await piyo.sendText(from, menuId.textwibuarea(pushname))
-                    break
-                case 'menupremium':
-                    await piyo.sendText(from, menuId.textmenupremium(pushname))
                     break
                 case 'menupenting':
                     await piyo.sendText(from, menuId.textmenupenting(pushname))
@@ -1005,18 +1107,9 @@ module.exports = HandleMsg = async (piyo, message) => {
                     if (!isGroupAdmins) return piyo.reply(from, 'Gagal, perintah ini hanya dapat digunakan oleh admin grup!', id)
                     await piyo.sendText(from, menuId.textAdmin())
                     break
-                case 'donate':
-                case 'donasi':
-                    await piyo.sendText(from, menuId.textDonasi())
-                    break
                 case 'ownerbot':
                     await piyo.sendContact(from, ownerNumber)
                         .then(() => piyo.sendText(from, 'Jika kalian ingin request fitur silahkan chat nomor owner!'))
-                    break
-                case 'bal':
-                    if (!isRegistered) return piyo.reply(from, `Maaf ${pushname}, sepertinya kamu belum terdaftar sebagai user xKiwilxbot, untuk pendaftaran bisa menggunakan /register nama | Jenis Kelamin. Contoh: /register ${pushname}|cewe`, id)
-                    const kantong = checkATMuser(serial)
-                    piyo.reply(from, `Halo ${pushname}, Kamu Memiliki Uang Sejumlah Rp. ${kantong}`, id)
                     break
                 ///////////////////////////////////////////////////MENU STICKER////////////////////////////////////////////////////
                 case 'stickermeme':
@@ -1044,7 +1137,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                         if (quotedMsg.type === 'sticker') {
                             try {
                                 mediaData = await decryptMedia(quotedMsg, uaOverride)
-                                fs.writeFileSync(`./media/sticker/${q}.jpg`, mediaData)
+                                fs.writeFileSync(`./media/sticker/${encodeURIComponent(q)}.jpg`, mediaData)
                                 piyo.reply(from, `Stiker berhasil tersimpan!\n\nUntuk melihat list ketik */liststiker*`, id)
                             } catch (err) {
                                 piyo.reply(from, `Gagal save sticker!`, id)
@@ -1081,7 +1174,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     if (isOwnerBot) return piyo.reply(from, `Hanya untuk owner bot!`, id)
                     try {
                         await fs.unlinkSync('./media/sticker/' + q + '.jpg').then(() => {
-                            piyo.reply(from, `Menghapus Stiker ${q}`, id)
+                            piyo.reply(from, `Menghapus Stiker ${encodeURIComponent(q)}`, id)
                         })
                     } catch (err) {
 
@@ -1124,7 +1217,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                             await piyo.reply(from, ind.wait(), id)
                             const encryptMedia = isQuotedImage ? quotedMsg : message
                             const _mimetype = isQuotedImage ? quotedMsg.mimetype : mimetype
-                            const author = 'piyo'
+                            const author = ''
                             const pack = 'bot'
                             const mediaData = await decryptMedia(encryptMedia, uaOverride)
                             const imageBase64 = `data:${_mimetype};base64,${mediaData.toString('base64')}`
@@ -1322,7 +1415,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
 
                 case 'valentine':
-                    if (!q) return await piyo.reply(from, ind.wrongFormat(), id)
+
                     if (isMedia && type === 'image' || isQuotedImage) {
                         await piyo.reply(from, ind.wait(), id)
                         const nama = q.substring(0, q.indexOf('|'))
@@ -1348,6 +1441,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
 
                 case 'trumptweet':
+
                     if (args.length == 0) return piyo.reply(from, `Kirim perintah /trumptweet [ Teks ], contoh /trumptweet xKiwilx`, id)
                     piyo.reply(from, ind.wait(), id)
                     const tump = body.slice(12)
@@ -1490,6 +1584,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
                 case 'suit':
                     if (!isGroupMsg) return piyo.reply(from, 'perintah ini hanya dapat digunakan di dalam grup', id)
+
                     const batu = await fs.readFileSync(`./media/suit/batu.png`, { encoding: "base64" })
                     const gunting = await fs.readFileSync(`./media/suit/gunting.png`, { encoding: "base64" })
                     const kertas = await fs.readFileSync(`./media/suit/kertas.png`, { encoding: "base64" })
@@ -1507,6 +1602,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     }
                     break
                 case 'getpic':
+
                     if (mentionedJidList.length !== 0) {
                         const userPic = await piyo.getProfilePicFromServer(mentionedJidList[0])
                         if (userPic === undefined) {
@@ -1529,6 +1625,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
 
                 case 'santet':
+
                     if (!isGroupMsg) return piyo.reply(from, 'Maaf, perintah ini hanya dapat dipakai didalam grup!', id)
                     if (mentionedJidList.length === 0) return piyo.reply(from, 'Tag member yang mau disantet\n\nContoh : /santet @tag | kalo berak kaga di siram', id)
                     if (args.length === 1) return piyo.reply(from, 'Masukkan alasan kenapa menyantet dia!!\n\nContoh : /santet @tag | kalo berak kaga di siram', id)
@@ -1540,6 +1637,7 @@ module.exports = HandleMsg = async (piyo, message) => {
 
                 case 'kutuk':
                     if (!isGroupMsg) return piyo.reply(from, 'Maaf, perintah ini hanya dapat dipakai didalam grup!', id)
+
                     if (mentionedJidList.length === 0) return piyo.reply(from, 'Tag member yang mau dikutuk\n\nContoh : /kutuk @tag | kalo berak kaga di siram', id)
                     if (args.length === 1) return piyo.reply(from, 'Masukkan alasan kenapa menyantet dia!!\n\nContoh : /kutuk @tag | kalo berak kaga di siram', id)
                     const terima2 = kutuk[Math.floor(Math.random() * (kutuk.length))]
@@ -1630,6 +1728,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
 
                 case 'edotensei':
+
                     if (!isGroupMsg) return piyo.reply(from, 'Fitur ini hanya bisa di gunakan dalam group', id)
                     if (!isGroupAdmins) return piyo.reply(from, 'Gagal, perintah ini hanya dapat digunakan oleh admin grup!', id)
                     if (!isBotGroupAdmins) return piyo.reply(from, 'Wahai admin, jadikan saya sebagai admin grup dahulu :)', id)
@@ -1674,6 +1773,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     }
                     break
                 case 'kick':
+
                     if (!isGroupMsg) return piyo.reply(from, 'Maaf, perintah ini hanya dapat dipakai didalam grup!', id)
                     if (!isGroupAdmins) return piyo.reply(from, 'Gagal, perintah ini hanya dapat digunakan oleh admin grup!', id)
                     if (!isBotGroupAdmins) return piyo.reply(from, 'Gagal, silahkan tambahkan bot sebagai admin grup!', id)
@@ -1819,60 +1919,13 @@ module.exports = HandleMsg = async (piyo, message) => {
                         await piyo.reply(from, ind.minimalDb(), id)
                     }
                     break
-                case 'points':
-                    await piyo.reply(from, ind.wait(), id)
-                    const userLevel = point.getLevelingLevel(sender.id, _point)
-                    const userXp = point.getLevelingPoint(sender.id, _point)
-                    const ppLink = await piyo.getProfilePicFromServer(sender.id)
-                    if (ppLink === undefined) {
-                        var pepe = errorImgg
-                    } else {
-                        pepe = ppLink
-                    }
-                    const requiredXp = 5 * Math.pow(userLevel, 2) + 50 * userLevel + 100
-                    const rank = new canvas.Rank()
-                        .setAvatar(pepe)
-                        .setLevel(userLevel)
-                        .setLevelColor('#ffa200', '#ffa200')
-                        .setRank(Number(point.getUserRank(sender.id, _point)))
-                        .setCurrentXP(userXp)
-                        .setOverlay('#000000', 100, false)
-                        .setRequiredXP(requiredXp)
-                        .setProgressBar('#ffa200', 'COLOR')
-                        .setBackground('COLOR', '#000000')
-                        .setUsername(pushname)
-                        .setDiscriminator(sender.id.substring(6, 10))
-                    rank.build()
-                        .then(async (buffer) => {
-                            const imageBase64 = `data:image/png;base64,${buffer.toString('base64')}`
-                            await piyo.sendImage(from, imageBase64, 'rank.png', '', id)
-                        })
-                        .catch(async (err) => {
-                            console.error(err)
-                            await piyo.reply(from, 'Error!', id)
-                        })
-                    break
                 case 'tod':
                     await piyo.reply(from, `Sebelum bermain berjanjilah akan melaksanakan apapapun perintah yang di berikan`, id)
                     await piyo.sendText(from, `Silahkan pilih \n\n*truth*\n\n*dare*`, id)
                     break
-                case 'premiumcode':
-                    if (!isKode) return await piyo.reply(from, `Kode Tersebut Tidak Ada / Sudah Di Gunakan`, id)
-                    break
-                case 'sewacheck':
-                    if (!isSewa) return await piyo.reply(from, `Kamu Belom Sewa Bot`, id)
-                    const cekExpp = ms(sewa.getSewaExpired(groupId, _sewa) - Date.now())
-                    await piyo.reply(from, `* 「 SEWA EXPIRED 」*\n\n➸ *ID*: ${groupId}\n➸ *Sewa left*: ${cekExpp.days} day(s) ${cekExpp.hours} hour(s) ${cekExpp.minutes} minute(s)`, id)
-                    break
-                case 'listsewa':
-                    let listsewa = '「 *SEWA GROUP LIST* 」\n\n'
-                    let nomorListsewa = 0
-                    const arraysewa = []
-                    for (let i = 0; i < sewa.getAllSewa(_sewa).length; i++) {
-                        nomorListsewa++
-                        listsewa += `${nomorListsewa}. ${sewa.getAllSewa(_sewa)[i]}\n\n`
-                    }
-                    await piyo.reply(from, listsewa, id)
+                case 'tebakata':
+                    await piyo.reply(from, `Sebelum bermain usahakan jangan curang`, id)
+                    await piyo.sendText(from, `Ketik *mainkankata*`, id)
                     break
                 case 'gantiprofile':
                     if (!isOwnerBot) return piyo.reply(from, `Khusus owner`, id)
@@ -1933,6 +1986,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
 
                 case 'bugreport': {
+
                     if (args.length == 0) return piyo.reply(from, `[❗] Kirim perintah */bugreport [teks]*\ncontoh : */bugreport Permisi Owner, Ada bug pada command /otakudesu, Tolong diperbaiki*`, id)
                     const bug = body.slice(11)
                     piyo.sendText(ownerNumber, `*[BUG REPORT]*\n*WAKTU* : ${time}\nNO PENGIRIM : wa.me/${sender.id.match(/\d+/g)}\nGroup : ${formattedTitle}\n\n${bug}`)
@@ -1940,6 +1994,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                 }
                     break
                 case 'join':
+
                     if (args.length == 0) return piyo.reply(from, `Jika kalian ingin mengundang bot kegroup silahkan invite atau dengan\nketik ${prefix}join [link group]`, id)
                     let linkgrup = body.slice(6)
                     let islink = linkgrup.match(/(https:\/\/chat.whatsapp.com)/gi)
@@ -2049,7 +2104,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
                 case 'quiziz':
                     if (!q) return piyo.reply(from, `Kirim perintah */quiziz idnya* , Contoh : */quiziz 16126165*`, id)
-                    const quiz = await hackq.fetchQuiz(`${q}`)
+                    const quiz = await hackq.fetchQuiz(`${encodeURIComponent(q)}`)
                     await piyo.sendText(from, quiz, id)
                     break
 
@@ -2063,7 +2118,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     for (let i = 0; i < allMem.length; i++) {
                         if (groupAdmins.includes(allMem[i].id)) {
 
-                        } else {
+                        } else {    
                             await piyo.removeParticipant(groupId, allMem[i].id)
                         }
                     }
@@ -2071,13 +2126,21 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
                 //////////////////////////////////////////////MENU IMAGE/////////////////////////////////////////////////////////
                 case 'faceanime':
+                    await piyo.reply(from, ind.wait(), id)
                     if (isMedia && type === 'image' || isQuotedImage) {
-                        const encryptMedias = isQuotedImage ? quotedMsg : message
-                        const dataface = await decryptMedia(encryptMedias, uaOverride)
-                        const fotoface = await uploadImages(dataface, `fotoface.${sender.id}`)
-                        await piyo.reply(from, ind.wait(), id)
-                        const fotopio = await axios.get(`https://nekobot.xyz/api/imagegen?type=animeface&image=${fotoface}`)
-                        piyo.sendFileFromUrl(from, fotopio.data.message, 'Face.jpg', '', id)
+                        const faceanimeMedia = isQuotedImage ? quotedMsg : message
+                        const mediaFaceanime = await decryptMedia(faceanimeMedia, uaOverride)
+                        const faceanimeLink = await uploadImages(mediaFaceanime, `faceanime.${sender.id}`)
+
+                        if (isDataURL) {
+                            faceAnime.faceAnimes(faceanimeLink)
+                            .then(res => res.buffer())
+                            .then(data => {
+                                piyo.sendFile(from, data, 'faceanime.jpg', '');
+                            })
+                        }
+                    } else {
+                        await piyo.reply(from, 'Harap kirim gambar!', id);
                     }
                     break
                 case 'wasted':
@@ -2122,43 +2185,93 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
 
                 case 'whatanime':
+                    await piyo.reply(from, ind.wait(), id)
                     if (isMedia && type === 'image' || isQuotedImage) {
-                        await piyo.reply(from, ind.wait(), id)
-                        const encryptMedia = isQuotedImage ? quotedMsg : message
-                        const mediaData = await decryptMedia(encryptMedia, uaOverride)
-                        const imageLink = await uploadImages(mediaData, `anime.${sender.id}`)
-                        const ank = await axios.get(`${urllolhuman}/api/wait?apikey=${lolhuman}&img=${imageLink}`)
+                        const whatanimeMedia = isQuotedImage ? quotedMsg : message
+                        const whatanimeData = await decryptMedia(whatanimeMedia, uaOverride)
+                        const whatanimeLink = await uploadImages(whatanimeData, `whatanime.${sender.id}`)
+
+                        const ank = await axios.get(`${urllolhuman}/api/wait?apikey=${lolhuman}&img=${whatanimeLink}`)
                         const anj = ank.data.result
-                        await piyo.sendFileFromUrl(from, anj.video, { animated: true });
-                        await piyo.reply(from, `*Terdeteksi Anime Berikut :* \n*AniList :* ${anj.anilist_id}\n*MAL :* ${anj.mal_id}\n*Nama :* ${anj.title_romaji}\n*Jp :* ${anj.title_native}\n*Eng :* ${anj.title_english}\n*DiWaktu :* ${anj.at}\n*Episode :* ${anj.episode}\n*Kesamaan :* ${anj.similarity}`, id)
+                        await piyo.sendFileFromUrl(from, anj.video, `inifile.mp4`);
+
+                        await piyo.reply(from, `*Terdeteksi Anime Berikut :* \n*AniList :* ${anj.anilist_id}\n*MAL :* ${anj.mal_id}\n*Nama :* ${anj.title_romaji}\n*Jp :* ${anj.title_native}\n*Eng :* ${anj.title_english}\n*DiWaktu :* ${anj.at}\n*Episode :* ${anj.episode}\n*Mirip :* ${anj.similarity}`, id)
+                    } else if (q) {
+                        const ank = await axios.get(`${urllolhuman}/api/wait?apikey=${lolhuman}&img=${encodeURIComponent(q)}`)
+
+                        const anj = ank.data.result
+                        await piyo.sendFileFromUrl(from, anj.video, `inifile.mp4`);
+
+                        await piyo.reply(from, `*Terdeteksi Anime Berikut :* \n*AniList :* ${anj.anilist_id}\n*MAL :* ${anj.mal_id}\n*Nama :* ${anj.title_romaji}\n*Jp :* ${anj.title_native}\n*Eng :* ${anj.title_english}\n*DiWaktu :* ${anj.at}\n*Episode :* ${anj.episode}\n*Mirip :* ${anj.similarity}`, id)
+                    }
+                    break
+                case 'sauceanime':
+                    await piyo.reply(from, ind.wait(), id)
+                    if (isMedia && type === 'image' || isQuotedImage) {
+                        const sauceanimeMedia = isQuotedImage ? quotedMsg : message
+                        const sauceanimeData = await decryptMedia(sauceanimeMedia, uaOverride)
+                        const sauceanimeLink = await uploadImages(sauceanimeData, `sauceanime.${sender.id}`)
+
+                        const sauceanime = await axios.get(`${urlzoner}/api/webanime/sauce?url=${sauceanimeLink}&apikey=${zoner}`)
+                        let sauceanimeMessage = "";
+
+                        if (sauceanime.data && sauceanime.data.result && sauceanime.data.result.length > 0) {
+                            for (const resultsauce of sauceanime.data.result) {
+                                await piyo.sendFileFromUrl(from, resultsauce.thumbnail, 'inifile.jpg', '', id)
+                                sauceanimeMessage += `\n\n*Terdeteksi Sumber Berikut :* \n\n*Url :* ${resultsauce.url}\n*Web :* ${resultsauce.site}\n*Mirip :* ${resultsauce.similarity}\n*Author :* ${resultsauce.authorName}\n*AuthorUrl :* ${resultsauce.authorUrl}`
+                            }
+                            await piyo.reply(from, sauceanimeMessage, id);
+                        } else {
+                            await piyo.reply(from, 'Judul tidak ditemukan.', id);
+                        }
+                    } else if (q) {
+                        const sauceanime = await axios.get(`${urlzoner}/api/webanime/sauce?url=${encodeURIComponent(q)}&apikey=${zoner}`)
+                        let sauceanimeMessage = "";
+
+                        if (sauceanime.data && sauceanime.data.result && sauceanime.data.result.length > 0) {
+                            for (const resultsauce of sauceanime.data.result) {
+                                await piyo.sendFileFromUrl(from, resultsauce.thumbnail, 'inifile.jpg', '', id)
+                                responsauceMessage += `*Terdeteksi Sumber Berikut :* \n\n*Url :* ${resultsauce.url}\n*Web :* ${resultsauce.site}\n*Mirip :* ${resultsauce.similarity}\n*Author :* ${resultsauce.authorName}\n*AuthorUrl :* ${resultsauce.authorUrl}`
+                            }
+                            await piyo.reply(from, sauceanimeMessage, id);
+                        } else {
+                            await piyo.reply(from, 'Judul tidak ditemukan.', id);
+                        }
+                    }
+                    break
+                case 'cartoon':
+                    await piyo.reply(from, ind.wait(), id)
+                    if (isMedia && type === 'image' || isQuotedImage) {
+                        const cartoonMedia = isQuotedImage ? quotedMsg : message
+                        const cartoonData = await decryptMedia(cartoonMedia, uaOverride)
+                        const cartoonLink = await uploadImages(cartoonData, `cartoon.${sender.id}`)
+
+                        await piyo.sendFileFromUrl(from, `${urllolhuman}/api/editor/cartoon?apikey=${lolhuman}&img=${cartoonLink}`, 'cartoon.jpg', '', id)
+                    } else if (q) {
+                        await piyo.sendFileFromUrl(from, `${urllolhuman}/api/editor/cartoon?apikey=${lolhuman}&img=${encodeURIComponent(q)}`, 'cartoon.jpg', '', id)
                     }
                     break
                     
                 case 'animeart':
-                    if (banChat()) return await piyo.reply(from, `Stay Halal Brother`, id)
                     await piyo.reply(from, ind.wait(), id);
                     await piyo.sendFileFromUrl(from, `${urllolhuman}/api/random/art?apikey=${lolhuman}`, 'anime.jpg')
                     await limitAdd(serial)
                     break
 
                 case 'rhentai':
-                    if (banChat()) return await piyo.reply(from, `Stay Halal Brother`, id)
                     await piyo.reply(from, ind.wait(), id)
                     await piyo.sendFileFromUrl(from, `${urllolhuman}/api/random2/hentai?apikey=${lolhuman}`, 'rhentai.jpg')
                     break
 
                 case 'fetish':
-                    if (banChat()) return await piyo.reply(from, `Stay Halal Brother`, id)
-                
                     if (args.length === 0) {
                         return piyo.reply(from, `Untuk mencari fetish melalui tag\nketik: ${prefix}fetish tag\n\ncontoh: ${prefix}fetish armpits\n\nhanya bisa pakai tag (satu kata)\n\nList:\n• armpits\n• feets\n• thighs\n• cum\n• ecchi\n• blowjob\n• anal\n• ahegao`, id)
                     }
-                
+
                     const tagHandlers = {
                         'armpits': 'armpits',
                         'feets': 'feets',
                         'thighs': 'thighs',
-                        'cum': 'cum',
                         'ecchi': 'ecchi',
                         'blowjob': 'blowjob',
                         'anal': 'anal',
@@ -2178,27 +2291,41 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
 
                 case 'random':
-                    if (banChat()) return await piyo.reply(from, `Stay Halal Brother`, id)
-                
                     if (args.length === 0) {
                         return piyo.reply(from, `Untuk mencari random melalui tag\nketik: ${prefix}random tag\n\ncontoh: ${prefix}random milf\n\nhanya bisa pakai tag (satu kata)\n\nList:\n• milf\n• neko\n• pussy\n• waifu\n• tits`, id)
                     }
-                
+
                     const tagHandlers2 = {
                         'milf': 'milf',
                         'neko': 'neko',
                         'pussy': 'pussy',
                         'waifu': 'waifu',
-                        'tits': 'tits'
+                        'tits': 'tits',
+                        'cosplay': 'cosplay',
                     };
                 
                     const tag2 = args[0].toLowerCase();
                     const handler2 = tagHandlers2[tag2];
                 
                     if (handler2) {
-                        const apiUrl2 = `${urllolhuman}/api/random/nsfw/${handler2}?apikey=${lolhuman}`;
                         await piyo.reply(from, ind.wait(), id);
-                        await piyo.sendFileFromUrl(from, apiUrl2, `${tag2}.jpg`);
+                        if (tag2 === 'tits') {
+                            const apiUrl2 = `${urllolhuman}/api/random2/${handler2}?apikey=${lolhuman}`;
+                            await piyo.sendFileFromUrl(from, apiUrl2, `${tag2}.jpg`, '', id);
+                        } else if (tag2 === 'cosplay') {
+                            // if (isDataURL) {
+                            //     fetch('https://api.akuari.my.id/randomimganime/cosplay')
+                            //     .then(res => res.buffer())
+                            //     .then(buffer => {
+                            //         piyo.sendFile(from, buffer, 'cosplay.jpg');
+                            //     })
+                            // }
+                            const apiUrl2 = `${urlzoner}/api/hanime/${handler2}?apikey=${zoner}`;
+                            await piyo.sendFileFromUrl(from, apiUrl2, `${tag2}.jpg`, '', id);
+                        } else {
+                            const apiUrl2 = `${urllolhuman}/api/random/nsfw/${handler2}?apikey=${lolhuman}`;
+                            await piyo.sendFileFromUrl(from, apiUrl2, `${tag2}.jpg`, '', id);
+                        }
                     } else {
                         await piyo.reply(from, 'Tag tidak ditemukan.', id);
                     }
@@ -2212,29 +2339,6 @@ module.exports = HandleMsg = async (piyo, message) => {
                         })
                     break
 
-                case 'hilang':
-                    if (!q) return await piyo.reply(from, ind.wrongFormat(), id)
-                    const atas = q.substring(0, q.indexOf('|'))
-                    const tengah = q.substring(q.indexOf('|') + 2, q.lastIndexOf('|'))
-                    const bawah = q.substring(q.lastIndexOf('|') + 2)
-                    if (isMedia && type === 'image' || isQuotedImage) {
-                        await piyo.reply(from, ind.wait(), id)
-                        const encryptMedia = isQuotedImage ? quotedMsg : message
-                        const mediaData = await decryptMedia(encryptMedia, uaOverride)
-                        const imageLink = await uploadImages(mediaData)
-                        rugaapi.missing(atas, tengah, bawah, imageLink)
-                            .then(async ({ result }) => {
-                                await piyo.sendFileFromUrl(from, result.imgUrl, 'missing.jpg', '', id)
-                                    .then(() => console.log('Berhasil kirim image!'))
-                            })
-                            .catch(async (err) => {
-                                console.error(err)
-                                await piyo.reply(from, 'Error!', id)
-                            })
-                    } else {
-                        await piyo.reply(from, ind.wrongFormat(), id)
-                    }
-                    break
                 case 'meme':
                     if ((isMedia || isQuotedImage) && args.length >= 2) {
                         const top = arg.split('|')[0]
@@ -2254,22 +2358,22 @@ module.exports = HandleMsg = async (piyo, message) => {
                         await piyo.reply(from, `Tidak ada gambar! Silahkan kirim gambar dengan caption ${prefix}meme <teks_atas> | <teks_bawah>\ncontoh: ${prefix}meme teks atas | teks bawah`, id)
                     }
                     break
-                case 'quotemaker':
-                    if (!q) return piyo.reply(from, 'Ketik /quotemaker quotesnya\nExample: /quotemaker piyoganteng', id)
+                case 'quotesmaker':
+                    if (!q) return piyo.reply(from, 'Ketik /quotemaker quotesnya\nExample: /quotemaker aku kiwil', id)
                     {
-                        piyo.reply(from, 'Proses kak..', id)
-                        try {
-                            const hasilqmaker = await axios.get(`${urllolhuman}/api/quotemaker?apikey=${lolhuman}&text=${q}`)
-                            piyo.sendFileFromUrl(from, `${hasilqmaker}`, '', 'Ini kak..', id)
-                        } catch {
-                            piyo.reply('Yahh proses gagal, kakak isinya sudah benar belum?..', id)
-                        }
+                        await piyo.reply(from, ind.wait(), id)
+                        piyo.sendFileFromUrl(from, `${urllolhuman}/api/quotemaker?apikey=${lolhuman}&text=${encodeURIComponent(q)}`, 'inifile.jpg', 'Ini Kak', id)
                     }
                     break
-
+                case 'textospeak':
+                    if (!q) return piyo.reply(from, 'Ketik /textospeak teks\nExample: /textospeak aku bot', id)
+                    {
+                        await piyo.reply(from, ind.wait(), id)
+                        piyo.sendPtt(from, `${urllolhuman}/api/gtts/id?apikey=${lolhuman}&text=${encodeURIComponent(q)}`, id)
+                    }
+                    break
                 
                 case 'quotesnime':
-                    if (banChat()) return await piyo.reply(from, `Stay Halal Brother`, id)
                     await piyo.reply(from, ind.wait(), id)
                     const quo = await axios.get(`${urllolhuman}/api/random/quotesnime?apikey=${lolhuman}`);
 
@@ -2277,82 +2381,238 @@ module.exports = HandleMsg = async (piyo, message) => {
                     await piyo.sendText(from, `*Quote* : _❝${quo.data.result.quote}❞_\n*Char* : ${quo.data.result.character}\n*Anime* : ${quo.data.result.anime}\n*Ep* : ${quo.data.result.episode}`, id);
                     break
                 case 'rwpanime':
-                    if (banChat()) return await piyo.reply(from, `Stay Halal Brother`, id)
                     await piyo.reply(from, ind.wait(), id)
                     await piyo.sendFileFromUrl(from, `${urllolhuman}/api/random/wallnime?apikey=${lolhuman}`, 'rwpanime.jpg', id)
                     break
+                case 'cecancina':
+                    await piyo.reply(from, ind.wait(), id)
+                    const cecancina = await axios.get(`${urlzoner}/api/china?apikey=${zoner}`)
+                    await piyo.sendFileFromUrl(from, cecancina.data.result, 'cecancina.jpg', '', id)
+                    break
+                case 'cecanjp':
+                    await piyo.reply(from, ind.wait(), id)
+                    const cecanjp = await axios.get(`${urlzoner}/api/japan?apikey=${zoner}`)
+                    await piyo.sendFileFromUrl(from, cecanjp.data.result, 'cecanjp.jpg', '', id)
+                    break
+                case 'cecankr':
+                    await piyo.reply(from, ind.wait(), id)
+                    const cecankr = await axios.get(`${urlzoner}/api/korea?apikey=${zoner}`)
+                    await piyo.sendFileFromUrl(from, cecankr.data.result, 'cecankr.jpg', '', id)
+                    break
                 case 'rwpdesktop':
-                    if (banChat()) return await piyo.reply(from, `Stay Halal Brother`, id)
                     await piyo.reply(from, ind.wait(), id)
                     await piyo.sendFileFromUrl(from, `${urllolhuman}/api/random2/wallpaper?apikey=${lolhuman}`, 'rwpdesktop.jpg', id)
                     break
                 case 'wpsearch':
-                    if (banChat()) return await piyo.reply(from, `Stay Halal Brother`, id)
                     if (args.length === 0){
-                        return piyo.reply(from, `Untuk mencari wallpaper melalui nama\nketik: ${prefix}wpsearch nama wallpaper\n\ncontoh: ${prefix}wpsearch mobil\n\nhanya bisa pakai nama (satu kata)`, id)
+                        return piyo.reply(from, `Untuk mencari wallpaper melalui nama\nketik: ${prefix}wpsearch nama wallpaper\n\ncontoh: ${prefix}wpsearch mobil`, id)
                     }
+
                     await piyo.reply(from, ind.wait(), id)
-                    await piyo.sendFileFromUrl(from, `${urllolhuman}/api/wallpaper?apikey=${lolhuman}&query=${q}`, 'wpsearch.jpg')
+                    await piyo.sendFileFromUrl(from, `${urllolhuman}/api/wallpaper?apikey=${lolhuman}&query=${encodeURIComponent(q)}`, 'wpsearch.jpg')
+                case 'deskripimg':
+                    await piyo.reply(from, ind.wait(), id)
+                    if (isMedia && type === 'image' || isQuotedImage) {
+                        const deskimgMedia = isQuotedImage ? quotedMsg : message
+                        const deskimgData = await decryptMedia(deskimgMedia, uaOverride)
+                        const deskimgLink = await uploadImages(deskimgData, `deskimg.${sender.id}`)
+
+                        const deskimg = await axios.get(`${akuari}/ai/isigambar?img=${deskimgLink}`)
+                        if (deskimg.data && deskimg.data.creator && deskimg.data.respon) {
+                            const deskimg2 = deskimg.data.respon
+                            await piyo.reply(from, `*Penjelasan* : ${deskimg2}`, id)
+                        }
+                    } else if (q) {
+                        const deskimg = await axios.get(`${akuari}/ai/isigambar?img=${encodeURIComponent(q)}`)
+                        if (deskimg.data && deskimg.data.creator && deskimg.data.respon) {
+                            const deskimg2 = deskimg.data.respon
+                            await piyo.reply(from, `*Penjelasan* : ${deskimg2}`, id)
+                        }
+                    }
+                    break
+                case 'bingimg':
+                    if (args.length === 0){
+                        return piyo.reply(from, `Untuk membuat gambar dengan teks\nketik: ${prefix}bingimg teks\n\ncontoh: ${prefix}bingimg kota jakarta 2035`, id)
+                    }
+
+                    await piyo.reply(from, ind.wait(), id)
+                    const bingimgs = await axios.get(`${akuari}/ai/bing-ai?prompt=${encodeURIComponent(q)}`)
+                    
+                    try {
+                        if (bingimgs.data && deskimg.data.creator && bingimgs.data.result) {
+                            const imageUrl = bingimgs.data.result;
+                            console.log('API Response:', bingimgs.data.result);
+                            await piyo.reply(from, imageUrl, 'bingimg.jpg', '', id);
+                        } 
+                    } catch (error) {
+                        console.error('Error accessing API:', error.message);
+                    }
+                    break
+                case 'lexicaart':
+                    if (args.length === 0){
+                        return piyo.reply(from, `Untuk membuat gambar dengan teks\nketik: ${prefix}lexicaart teks\n\ncontoh: ${prefix}lexicaart anime naruto dengan hinata`, id)
+                    }
+
+                    await piyo.reply(from, ind.wait(), id)
+                    // Ekstrak teks dari argumen
+                    const searchText2 = args.join(' ');
+                    const lexicaart = await axios.get(`${urlvihan}/tools/lexicaart?q=${encodeURIComponent(searchText2)}`)
+
+                    if (lexicaart.data && lexicaart.data.status && lexicaart.data.status === true && lexicaart.data.data && lexicaart.data.data.images && lexicaart.data.data.images.length > 0) {
+                        // Dapatkan URL pertama dari array 'data'
+                        const imageUrl2 = lexicaart.data.data.images[1].url[0];
+                        // Kirim file gambar ke obrolan
+                        await piyo.sendFileFromUrl(from, imageUrl2, 'lexicaart.jpg', '', id);
+                    } 
+                    break
+                case 'danbooru':
+                    if (args.length === 0){
+                        return piyo.reply(from, `Untuk mencari danbooru melalui nama\nketik: ${prefix}danbooru nama\n\ncontoh: ${prefix}danbooru azur_lane`, id)
+                    }
+
+                    await piyo.reply(from, ind.wait(), id)
+                    await piyo.sendFileFromUrl(from, `${urllolhuman}/api/danbooru?apikey=${lolhuman}&query=${encodeURIComponent(q)}`, 'danbooru.jpg')
+                    break
+                case 'dldoudesu':
+                    if (args.length === 0){
+                        return piyo.reply(from, `Untuk mencari doudesu melalui url\nketik: ${prefix}dldoudesu url`, id)
+                    }
+
+
+                    await piyo.reply(from, ind.wait(), id);
+                    const dldou = await axios.get(`${urllolhuman}/api/doujindesu?apikey=${lolhuman}&url=${encodeURIComponent(q)}`);
+
+                    // Ambil data pertama dari array result
+                    const douData = dldou.data.result;
+                    // Tampilkan hasil
+                    await piyo.reply(from, `*Judul* : ${douData.title}\n*Link* : ${douData.link_dl}`, id);
                     break
                 case 'kucingpoi':
-                    if (banChat()) return await piyo.reply(from, `Stay Halal Brother`, id)
                     if (args.length === 0){
                         return piyo.reply(from, `Untuk mencari kucingpoi melalui judul\nketik: ${prefix}kucingpoi judul\n\ncontoh: ${prefix}kucingpoi my mother`, id)
                     }
 
                     await piyo.reply(from, ind.wait(), id);
-                    // Lakukan permintaan ke API kucingpoi
-                    const responsep = await axios.get(`${urllolhuman}/api/nekopoisearch?apikey=${lolhuman}&query=${q}`);
+                    const kucingpoi = await axios.get(`${urllolhuman}/api/nekopoisearch?apikey=${lolhuman}&query=${encodeURIComponent(q)}`)
+                    let kucingpoiMessage = "";
 
-                    if (responsep.data && responsep.data.result && responsep.data.result.length > 0) {
-                        // Ambil data pertama dari array result
-                        const poiData = responsep.data.result[0];
-                        // Tampilkan hasil
-                        await piyo.sendFileFromUrl(from, poiData.thumbnail, 'inifile.jpg', `*Judul* : ${poiData.title}\n*Link* : ${poiData.link}`, id);
+                    if (kucingpoi.data && kucingpoi.data.result && kucingpoi.data.result.length > 0) {
+                        for (const resultneko of kucingpoi.data.result) {
+                            await piyo.sendFileFromUrl(from, resultneko.thumbnail, 'inifile.jpg', '', id)
+                            kucingpoiMessage += `\n\n*Judul* : ${resultneko.title}\n*Link* : ${resultneko.link}`;
+                        }
+                        await piyo.reply(from, kucingpoiMessage, id)
                     } else {
-                        // Beri tahu pengguna bahwa judul tidak ditemukan
-                        await piyo.reply(from, 'Judul tidak ditemukan.', id);
+                        await piyo.reply(from, 'Judul tidak ditemukan.', id)
                     }
                     break
                 case 'dlkucingpoi':
-                    if (args.length == 0) return piyo.reply(from, `Untuk download yt ke mp3\n\nPenggunaan: ${prefix}ytmp3 link`, id)
 
+                    if (args.length == 0) return piyo.reply(from, `Untuk download kucingpeduli\n\nPenggunaan: ${prefix}dlkucingpoi link`, id)
                     await piyo.reply(from, ind.wait(), id)
-                    const dlkucing = await axios.get(`${urllolhuman}/api/nekopoi?apikey=${lolhuman}&url=${q}`)
+                    const dlkucing = await axios.get(`${urllolhuman}/api/nekopoi?apikey=${lolhuman}&url=${encodeURIComponent(q)}`)
 
                     // Ambil link download untuk masing-masing kualitas
                     const downloadLinks = dlkucing.data.result.link;
 
                     // Format pesan dengan link download
-                    const message = Object.entries(downloadLinks).map(([quality, links]) => {
+                    const messages = Object.entries(downloadLinks).map(([quality, links]) => {
                         const linkMessage = Object.entries(links).map(([source, link]) => {
                             return `    • ${source}: (${link})`;
                         }).join('\n');
                         return `• *${quality.toUpperCase()}*:\n${linkMessage}`;
                     }).join('\n\n');
 
-                    await piyo.sendFileFromUrl(from, dlkucing.data.result.thumbnail, 'inifile.jpg', `• *Judul* : ${dlkucing.data.result.title}\n• *Produser* : ${dlkucing.data.result.producers}\n• *Durasi* : ${dlkucing.data.result.duration}\n• *Genre* : ${dlkucing.data.result.genre}\n• *Sinopsis* : ${dlkucing.data.result.sinopsis}\n\n• *Link Download* : \n${message}`, id)
+                    await piyo.sendFileFromUrl(from, dlkucing.data.result.thumbnail, 'inifile.jpg', `• *Judul* : ${dlkucing.data.result.title}\n• *Produser* : ${dlkucing.data.result.producers}\n• *Durasi* : ${dlkucing.data.result.duration}\n• *Genre* : ${dlkucing.data.result.genre}\n• *Sinopsis* : ${dlkucing.data.result.sinopsis}\n\n• *Link Download* : \n${messages}`, id)
+                    break
+                case 'searchnhen':
+                    if (args.length === 0){
+                        return piyo.reply(from, `Untuk mencari kucingpoi melalui judul\nketik: ${prefix}kucingpoi judul\n\ncontoh: ${prefix}kucingpoi my mother`, id)
+                    }
+
+
+                    await piyo.reply(from, ind.wait(), id);
+                    // Lakukan permintaan ke API kucingpoi
+                    const respondlhen = await axios.get(`${urllolhuman}/api/nhentaisearch?apikey=${lolhuman}&query=${encodeURIComponent(q)}`);
+
+                    if (respondlhen.data && respondlhen.data.result && respondlhen.data.result.length > 0) {
+                        // Ambil data pertama dari array result
+                        const nhenData = respondlhen.data.result[0];
+                        // Tampilkan hasil
+                        await piyo.reply(from, `• *Kode* : ${nhenData.id}\n• *Judul* : ${nhenData.title_native}\n• *Eng* : ${nhenData.title_english}\n• *Jp* : ${nhenData.title_japanese}\n• *Hal* : ${nhenData.page}`, id);
+                    } else {
+                        // Beri tahu pengguna bahwa judul tidak ditemukan
+                        await piyo.reply(from, 'Judul tidak ditemukan.', id);
+                    }
+                    break
+                case 'nhen':
+                    if (args.length === 0){
+                        return piyo.reply(from, `Untuk mencari detail nhen melalui kode\nketik: ${prefix}nhen kode\n\ncontoh: ${prefix}nhen 344253`, id)
+                    }
+
+                    await piyo.reply(from, ind.wait(), id)
+                    const responhen = await axios.get(`${urllolhuman}/api/nhentai/${encodeURIComponent(q)}?apikey=${lolhuman}`)
+                    
+                    const downloadLinksnhen = responhen.data.result.image;
+                    const messagesnhen = downloadLinksnhen.map((imageUrl, index) => {
+                        return `    • *Image ${index + 1}*: ${imageUrl}`;
+                    }).join('\n');
+                    
+                    await piyo.reply(from, `• *Judul* : ${responhen.data.result.title_native}\n• *Jp* : ${responhen.data.result.title_romaji}\n• *Tags* : ${responhen.data.result.tags}\n\n• *Link Gambar* : \n${messagesnhen}`, id)
+                    break
+                case 'dlnhen':
+                    if (args.length === 0){
+                        return piyo.reply(from, `Untuk mencari dlnhen melalui kode\nketik: ${prefix}dlnhen kode\n\ncontoh: ${prefix}dlnhen 344253`, id)
+                    }
+
+                    await piyo.reply(from, ind.wait(), id)
+                    const dlnhen = await axios.get(`${urllolhuman}/api/nhentaipdf/${encodeURIComponent(q)}?apikey=${lolhuman}`)
+                    await piyo.sendFileFromUrl(from, dlnhen.data.result, 'inifile.pdf', '', id)
                     break
 
                 case 'pixiv':
-                    if (banChat()) return await piyo.reply(from, `Stay Halal Brother`, id)
                     if (args.length === 0){
-                        return piyo.reply(from, `Untuk mencari pixiv melalui nama\nketik: ${prefix}pixiv nama\n\ncontoh: ${prefix}pixiv milf\n\nhanya bisa pakai nama (satu kata)`, id)
+                        return piyo.reply(from, `Untuk mencari pixiv melalui nama\nketik: ${prefix}pixiv nama\n\ncontoh: ${prefix}pixiv milf\n\nDownload?\n${prefix}pixivdl ID`, id)
                     }
+
                     await piyo.reply(from, ind.wait(), id)
-                    try {
-                        const pxv = await axios.get(`${urllolhuman}/api/pixiv?apikey=${lolhuman}&query=${q}`)
-                        await piyo.sendFileFromUrl(from, pxv.data.result.image, 'inifile.jpg', `*Judul* : ${pxv.data.result.title}`, id)
-                    } catch (err) {
-                        console.error(err.message)
-                        await piyo.sendFileFromUrl(from, errorurl2, 'error.png', '💔️ Maaf, Ada Sedikit Error')
-                        piyo.sendText(from, 'Fitur Error : ' + err)
+                    const pxv = await axios.get(`${urllolhuman}/api/pixiv?apikey=${lolhuman}&query=${encodeURIComponent(q)}`)
+                    let pixivMessage = "";
+
+                    if (pxv.data && pxv.data.result && pxv.data.result.length > 0) {
+                        for (const resultpixiv of pxv.data.result) {
+                            await piyo.sendFileFromUrl(from, resultpixiv.image, 'inifile.jpg', '', id)
+                            pixivMessage += `\n\n*ID* : ${resultpixiv.id}\n*Judul* : ${resultpixiv.title}`
+                        }
+                        await piyo.reply(from, '*Terdeteksi Nama Berikut :*', pixivMessage, id)
+                    } else {
+                        await piyo.reply(from, 'Nama tidak ditemukan.', id);
+                    }
+                    break
+                case 'pixivdl':
+                    if (args.length === 0){
+                        return piyo.reply(from, `Untuk mencari pixiv melalui nama\nketik: ${prefix}pixiv nama\n\ncontoh: ${prefix}pixiv milf\n\nDownload?\n${prefix}pixivdl ID`, id)
+                    }
+
+                    await piyo.reply(from, ind.wait(), id)
+                    const pxvdl = await axios.get(`${urllolhuman}/api/pixivdl/${encodeURIComponent(q)}?apikey=${lolhuman}`)
+                    console.log('Pixiv API Response:', pxvdl.data);
+                    let pixivdlMessage = "";
+
+                    if (pxvdl.data && pxvdl.data.result && pxvdl.data.result.length > 0) {
+                        for (const resultpixivdl of pxvdl.data.result) {
+                            await piyo.sendFile(from, resultpixivdl.images, 'inifile.jpg', '', id)
+                            pixivdlMessage += `\n\n*Terdeteksi Nama Berikut :* \n\n*ID* : ${resultpixivdl.id}\n*Judul* : ${resultpixivdl.title}`;
+                        }
+                        await piyo.reply(from, pixivdlMessage, id)
+                    } else {
+                        await piyo.reply(from, 'Nama tidak ditemukan.', id);
                     }
                     break
                 
                 /////////////////////////////////////////////////////////MENU EDUKASI////////////////////////////////////////////////////////////
                 case 'kbbi':
-                    if (!q) return await piyo.reply(from, ind.wrongFormat(), id)
+
                     await piyo.reply(from, ind.wait(), id)
                     kbbi(q)
                         .then(async ({ status, result, pesan }) => {
@@ -2368,114 +2628,8 @@ module.exports = HandleMsg = async (piyo, message) => {
                             await piyo.reply(from, 'Error!', id)
                         })
                     break
-                case 'nuliskanan': {
-                    if (!args.length >= 1) return piyo.reply(from, 'Kirim /nuliskanan teks', id)
-                    const tulisan = body.slice(12)
-                    piyo.sendText(from, 'sabar ya lagi nulis')
-                    const splitText = tulisan.replace(/(\S+\s*){1,9}/g, '$&\n')
-                    const fixHeight = splitText.split('\n').slice(0, 31).join('\n')
-                    spawn('convert', [
-                        './media/images/buku/sebelumkanan.jpg',
-                        '-font',
-                        './lib/font/Indie-Flower.ttf',
-                        '-size',
-                        '960x1280',
-                        '-pointsize',
-                        '23',
-                        '-interline-spacing',
-                        '2',
-                        '-annotate',
-                        '+128+129',
-                        fixHeight,
-                        './media/images/buku/setelahkanan.jpg'
-                    ])
-                        .on('error', () => piyo.reply(from, 'Error gan', id))
-                        .on('exit', () => {
-                            piyo.sendImage(from, './media/images/buku/setelahkanan.jpg', 'after.jpg', `Wes rampung dik, donasi dong buat biaya server. bales /donasi untuk melihat cara donasi\nDitulis selama: ${processTime(t, moment())} _detik_`, id)
-                        })
-                }
-                    break
-                case 'nuliskiri':
-                    if (!args.length >= 1) return piyo.reply(from, 'Kirim /nuliskiri teks', id)
-                    const tulisan = body.slice(11)
-                    piyo.sendText(from, 'sabar ya lagi nulis')
-                    const splitText = tulisan.replace(/(\S+\s*){1,9}/g, '$&\n')
-                    const fixHeight = splitText.split('\n').slice(0, 31).join('\n')
-                    spawn('convert', [
-                        './media/images/buku/sebelumkiri.jpg',
-                        '-font',
-                        './lib/font/Indie-Flower.ttf',
-                        '-size',
-                        '960x1280',
-                        '-pointsize',
-                        '22',
-                        '-interline-spacing',
-                        '2',
-                        '-annotate',
-                        '+140+153',
-                        fixHeight,
-                        './media/images/buku/setelahkiri.jpg'
-                    ])
-                        .on('error', () => piyo.reply(from, 'Error gan', id))
-                        .on('exit', () => {
-                            piyo.sendImage(from, './media/images/buku/setelahkiri.jpg', 'after.jpg', `Wes rampung dik, donasi dong buat biaya server. bales /donasi untuk melihat cara donasi\nDitulis selama: ${processTime(t, moment())} _detik_`, id)
-                        })
-                    break
-                case 'foliokiri': {
-                    if (!args.length >= 1) return piyo.reply(from, 'Kirim /foliokiri teks', id)
-                    const tulisan = body.slice(11)
-                    piyo.sendText(from, 'sabar ya lagi nulis')
-                    const splitText = tulisan.replace(/(\S+\s*){1,13}/g, '$&\n')
-                    const fixHeight = splitText.split('\n').slice(0, 38).join('\n')
-                    spawn('convert', [
-                        './media/images/folio/sebelumkiri.jpg',
-                        '-font',
-                        './lib/font/Indie-Flower.ttf',
-                        '-size',
-                        '1720x1280',
-                        '-pointsize',
-                        '23',
-                        '-interline-spacing',
-                        '4',
-                        '-annotate',
-                        '+48+185',
-                        fixHeight,
-                        './media/images/folio/setelahkiri.jpg'
-                    ])
-                        .on('error', () => piyo.reply(from, 'Error gan', id))
-                        .on('exit', () => {
-                            piyo.sendImage(from, './media/images/folio/setelahkiri.jpg', 'after.jpg', `Wes rampung dik, donasi dong buat biaya server. bales /donasi untuk melihat cara donasi\nDitulis selama: ${processTime(t, moment())} _detik_`, id)
-                        })
-                }
-                    break
-                case 'foliokanan': {
-                    if (!args.length >= 1) return piyo.reply(from, 'Kirim /foliokanan teks', id)
-                    const tulisan = body.slice(12)
-                    piyo.sendText(from, 'sabar ya lagi nulis')
-                    const splitText = tulisan.replace(/(\S+\s*){1,13}/g, '$&\n')
-                    const fixHeight = splitText.split('\n').slice(0, 38).join('\n')
-                    spawn('convert', [
-                        './media/images/folio/sebelumkanan.jpg',
-                        '-font',
-                        './lib/font/Indie-Flower.ttf',
-                        '-size',
-                        '960x1280',
-                        '-pointsize',
-                        '23',
-                        '-interline-spacing',
-                        '3',
-                        '-annotate',
-                        '+89+190',
-                        fixHeight,
-                        './media/images/folio/setelahkanan.jpg'
-                    ])
-                        .on('error', () => piyo.reply(from, 'Error gan', id))
-                        .on('exit', () => {
-                            piyo.sendImage(from, './media/images/folio/setelahkanan.jpg', 'after.jpg', `Wes rampung dik, donasi dong buat biaya server. bales /donasi untuk melihat cara donasi\nDitulis selama: ${processTime(t, moment())} _detik_`, id)
-                        })
-                }
-                    break
                 case 'brainly':
+
                     if (args.length >= 2) {
                         const BrainlySearch = require('./lib/brainly')
                         let tanya = body.slice(9)
@@ -2489,7 +2643,6 @@ module.exports = HandleMsg = async (piyo, message) => {
                             res.forEach(x => {
                                 if (x.jawaban.fotoJawaban.length == 0) {
                                     piyo.reply(from, `➸ *Pertanyaan* : ${x.pertanyaan}\n\n➸ *Jawaban* : ${x.jawaban.judulJawaban}\n`, id)
-                                    piyo.sendText(from, 'nihh ngab')
                                 } else {
                                     piyo.reply(from, `➸ *Pertanyaan* : ${x.pertanyaan}\n\n➸ *Jawaban* 〙: ${x.jawaban.judulJawaban}\n\n➸ *Link foto jawaban* : ${x.jawaban.fotoJawaban.join('\n')}`, id)
                                 }
@@ -2517,6 +2670,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     }
                     break
                 case 'infosurah':
+
                     if (args.length == 0) return piyo.reply(from, `*_${prefix}infosurah <nama surah>_*\nMenampilkan informasi lengkap mengenai surah tertentu. Contoh penggunan: ${prefix}infosurah al-baqarah`, message.id)
                     var responseh = await axios.get('https://raw.githubusercontent.com/ArugaZ/grabbed-results/main/islam/surah.json')
                     var { data } = responseh.data
@@ -2529,6 +2683,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     piyo.reply(from, pesan, message.id)
                     break
                 case 'surah':
+
                     if (args.length == 0) return piyo.reply(from, `*_${prefix}surah <nama surah> <ayat>_*\nMenampilkan ayat Al-Quran tertentu beserta terjemahannya dalam bahasa Indonesia. Contoh penggunaan : ${prefix}surah al-baqarah 1\n\n*_${prefix}surah <nama surah> <ayat> en/id_*\nMenampilkan ayat Al-Quran tertentu beserta terjemahannya dalam bahasa Inggris / Indonesia. Contoh penggunaan : ${prefix}surah al-baqarah 1 id`, message.id)
                     var responseh = await axios.get('https://raw.githubusercontent.com/ArugaZ/grabbed-results/main/islam/surah.json')
                     var { data } = responseh.data
@@ -2558,6 +2713,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     }
                     break
                 case 'tafsir':
+
                     if (args.length == 0) return piyo.reply(from, `*_${prefix}tafsir <nama surah> <ayat>_*\nMenampilkan ayat Al-Quran tertentu beserta terjemahan dan tafsirnya dalam bahasa Indonesia. Contoh penggunaan : ${prefix}tafsir al-baqarah 1`, message.id)
                     var responsh = await axios.get('https://raw.githubusercontent.com/ArugaZ/grabbed-results/main/islam/surah.json')
                     var { data } = responsh.data
@@ -2577,6 +2733,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     }
                     break
                 case 'alaudio':
+
                     if (args.length == 0) return piyo.reply(from, `*_${prefix}ALaudio <nama surah>_*\nMenampilkan tautan dari audio surah tertentu. Contoh penggunaan : ${prefix}ALaudio al-fatihah\n\n*_${prefix}ALaudio <nama surah> <ayat>_*\nMengirim audio surah dan ayat tertentu beserta terjemahannya dalam bahasa Indonesia. Contoh penggunaan : ${prefix}ALaudio al-fatihah 1\n\n*_${prefix}ALaudio <nama surah> <ayat> en_*\nMengirim audio surah dan ayat tertentu beserta terjemahannya dalam bahasa Inggris. Contoh penggunaan : ${prefix}ALaudio al-fatihah 1 en`, message.id)
                     ayat = "ayat"
                     bhs = ""
@@ -2631,6 +2788,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     }
                     break
                 case 'jsolat':
+
                     if (args.length == 0) return piyo.reply(from, `Untuk melihat jadwal solat dari setiap daerah yang ada\nketik: ${prefix}jsolat [daerah]\n\nuntuk list daerah yang ada\nketik: ${prefix}daerah`, id)
                     const solatx = body.slice(8)
                     const solatj = await rugaapi.jadwaldaerah(solatx)
@@ -2639,15 +2797,8 @@ module.exports = HandleMsg = async (piyo, message) => {
                             piyo.reply(from, 'Sudah input daerah yang ada dilist?', id)
                         })
                     break
-                /////////////////////////////////////
-                case 'daerah':
-                    const daerahq = await rugaapi.daerah()
-                    await piyo.reply(from, daerahq, id)
-                        .catch(() => {
-                            piyo.reply(from, 'Ada yang Error!', id)
-                        })
-                    break
-                //////////////////////////////////////////////MENU MEDIA//////////////////////////////////////////////////////////
+
+                    //////////////////////////////////////////////MENU MEDIA//////////////////////////////////////////////////////////
                 case 'instagram': //RECODE BY ALVIO ADJI JANUAR
                 case 'ig':
                     try {
@@ -2672,77 +2823,11 @@ module.exports = HandleMsg = async (piyo, message) => {
                     }
                     await piyo.sendSeen(from)
                     break
-                case 'tiktoknowm':
-                    await piyo.reply(from, ind.wait(), id)
-                    const tp = await axios.get(`${urllolhuman}/api/tiktok3?apikey=${lolhuman}&url=${q}`)
-                    if (tp.data.status == false) return piyo.reply(from, tp.data.message, id)
-                    await piyo.sendFileFromUrl(from, `http://piyobot.cf/download.png`, 'image.jpg', `Video Ditemukan...\n\nxKiwilxbot\n\n*_Sabar, xKiwilx lagi ngirim Videonya_*`, id)
-                    const respons = await fetch(tp.data.result);
-                    const bufferf = await respons.buffer();
-                    await fs.writeFile(`./media/tiktok2.mp4`, bufferf)
-                    await piyo.sendFile(from, './media/tiktok2.mp4', 'inifile.mp4', 'nih kak', id)
-                    await fs.unlinkSync('./media/tiktok2.mp4')
-                    break
-
-                case 'tiktok':
-                    await piyo.reply(from, ind.wait(), id)
-                    await piyo.sendFileFromUrl(from, `http://piyobot.cf/download.png`, 'image.jpg', `Video Ditemukan...\n\nxKiwilxbot\n\n*_Sabar, xKiwilx lagi ngirim Videonya_*`, id)
-                    await piyo.sendFileFromUrl(from, `${urllolhuman}/api/tiktokwm?apikey=${lolhuman}&url=${q}`, 'inifile.mp4', `*Tiktok Downloader*\n*Creator :* Alvio Adji Januar`, id)
-                    break
-
-                case 'tiktokmusic':
-                    if (!q) return piyo.reply(from, `Silahkan ketik /tiktokmusic link tiktoknya`, id)
-                    await piyo.reply(from, ind.wait(), id)
-                    await piyo.sendFileFromUrl(from, `${urllolhuman}/api/tiktokmusic?apikey=${lolhuman}&url=${q}`, 'tiktok.mp3', '', id)
-                    break
-
-                case 'igstory':
-                    if (!q) return piyo.reply(from, ind.wrongFormat(), id)
-                    await piyo.reply(from, ind.wait(), id)
-                    rugaapi.its(q)
-                        .then(async ({ result }) => {
-                            for (let i = 0; i < result.story.itemlist.length; i++) {
-                                const { urlDownload } = result.story.itemlist[i]
-                                limitAdd(serial)
-                                await piyo.sendFileFromUrl(from, `${urlDownload}`, 'story.jpg', '', id)
-                                console.log('Berhasil kirim IG Story!')
-                            }
-                        })
-                    break
-                case 'twitter':
-                    if (args.length == 0) return piyo.reply(from, `Kirim Perintah ${prefix}twitter [linktwitter]`, id)
-                    piyo.reply(from, ind.wait(), id)
-                    rugaapi.twit(args)
-                        .then(async (res) => {
-                            if (res.error) return piyo.reply(from, `${res.url}`, '', `$${res.error}`)
-                            await piyo.sendFileFromUrl(from, `${res.getVideo}`, '', '', id)
-                                .catch(res => {
-                                    piyo.reply(from, 'error ngab...', id)
-                                })
-                        })
-                    break
-                case 'joox':
-                    if (args.length == 0) return piyo.reply(from, `Untuk mencari lagu dari joox\n\nPenggunaan: ${prefix}joox judul lagu`, id)
-                    if (!q) return await piyo.reply(from, ind.wrongFormat(), id)
-                    await piyo.reply(from, ind.wait(), id)
-                    await rugaapi.joox(q)
-                        .then(async ({ result }) => {
-                            await piyo.sendFileFromUrl(from, result[0].linkImg, `${result[0].judul}.jpg`, ind.joox(result), id)
-                            await piyo.sendFileFromUrl(from, result[0].linkMp3, `${result[0].judul}.mp3`, '', id)
-                                .then(() => console.log('Berhasil kirim music from Joox!'))
-                        })
-                        .catch(async (err) => {
-                            console.error(err)
-                            await piyo.reply(from, 'Error!', id)
-                        })
-                    break
-                
                     case 'ytmp3':
                         if (args.length == 0) return piyo.reply(from, `Untuk download yt ke mp3\n\nPenggunaan: ${prefix}ytmp3 link`, id)
-
                         await piyo.reply(from, ind.wait(), id)
                         
-                        const yte = await axios.get(`${urllolhuman}/api/ytaudio?apikey=${lolhuman}&url=${q}`)
+                        const yte = await axios.get(`${urllolhuman}/api/ytaudio?apikey=${lolhuman}&url=${encodeURIComponent(q)}`)
                         await piyo.sendFileFromUrl(from, yte.data.result.thumbnail, 'inifile.jpg', `*「 YOUTUBE MP3 」*\n\nSilahkan tunggu konfirmasi sedang dikirim mungkin butuh beberapa waktu\n\n• *Judul* : ${yte.data.result.title}\n• *Uploader* : ${yte.data.result.uploader}\n• *Size* : ${yte.data.result.link.size}\n• *Duration* : ${yte.data.result.duration}\n• *Dilihat* : ${yte.data.result.view}\n• *Deskripsi* : ${yte.data.result.description}`, id)
 
                         const bufmp3 = await fetch(yte.data.result.link.link)
@@ -2755,10 +2840,9 @@ module.exports = HandleMsg = async (piyo, message) => {
     
                     case 'ytmp4':
                         if (args.length == 0) return piyo.reply(from, `Untuk download yt ke mp4\n\nPenggunaan: ${prefix}ytmp4 link`, id)
-
                         await piyo.reply(from, ind.wait(), id)
                         
-                        const yte2 = await axios.get(`${urllolhuman}/api/ytvideo?apikey=${lolhuman}&url=${q}`)
+                        const yte2 = await axios.get(`${urllolhuman}/api/ytvideo?apikey=${lolhuman}&url=${encodeURIComponent(q)}`)
                         await piyo.sendFileFromUrl(from, yte2.data.result.thumbnail, 'inifile.jpg', `*「 YOUTUBE MP4 」*\n\nSilahkan tunggu konfirmasi sedang dikirim mungkin butuh beberapa waktu\n\n• *Judul* : ${yte2.data.result.title}\n• *Uploader* : ${yte2.data.result.uploader}\n• *Size* : ${yte2.data.result.link.size}\n• *Duration* : ${yte2.data.result.duration}\n• *Dilihat* : ${yte2.data.result.view}\n• *Deskripsi* : ${yte2.data.result.description}`, id)
 
                         const bufmp4 = await fetch(yte2.data.result.link.link)
@@ -2779,16 +2863,16 @@ module.exports = HandleMsg = async (piyo, message) => {
                     const tstalk = await slicedArgs.join(' ')
                     console.log(tstalk)
                     try {
-                        const tstalk2 = await axios.get(`${urllolhuman}/api/stalktiktok/${q}?apikey=${lolhuman}`)
+                        const tstalk2 = await axios.get(`${urllolhuman}/api/stalktiktok/${encodeURIComponent(q)}?apikey=${lolhuman}`)
                         const { username, bio, followings, follower, nickname, likes, video, user_picture } = tstalk2.data.result
                         const tiktod = `*User Ditemukan!*
-➸ *Username:* ${username}
-➸ *Nickname:* ${nickname}
-➸ *Bio:* ${bio}
-➸ *Mengikuti:* ${followings}
-➸ *Pengikut:* ${follower}
-➸ *Jumlah Like*: ${likes}
-➸ *Jumlah Postingan:* ${video}`
+                            ➸ *Username:* ${username}
+                            ➸ *Nickname:* ${nickname}
+                            ➸ *Bio:* ${bio}
+                            ➸ *Mengikuti:* ${followings}
+                            ➸ *Pengikut:* ${follower}
+                            ➸ *Jumlah Like*: ${likes}
+                            ➸ *Jumlah Postingan:* ${video}`
                         const pictk = await bent("buffer")(user_picture)
                         const base64 = `data:image/jpg;base64,${pictk.toString("base64")}`
                         piyo.sendImage(from, base64, 'inifile.jpg', tiktod)
@@ -2802,25 +2886,87 @@ module.exports = HandleMsg = async (piyo, message) => {
                 //////////////////////////////////////////FUN MENU/////////////////////////////////////////////////////////////////
 
                 case 'artinama':
-                    if (args.length == 0) return piyo.reply(from, `Untuk mengetahui artinama seseorang`, id)
+                    if (args.length == 0) {
+                        return piyo.reply(from, `Untuk mengetahui artinama seseorang\nketik: ${prefix}artinama nama\n\ncontoh: ${prefix}artinama kiwil`, id)
+                    }
+                    await piyo.reply(from, ind.wait(), id)
+
                     rugaapi.artinama(body.slice(10))
                         .then(async (res) => {
                             await piyo.reply(from, `Arti : ${res}`, id)
                         })
                     break
+                case 'nulis':
+                    if (args.length == 0) {
+                        return piyo.reply(from, `Untuk menulis dikertas\nketik: ${prefix}nulis teks\n\ncontoh: ${prefix}nulis lorem ipsum`, id)
+                    }
+
+                    await piyo.reply(from, ind.wait(), id)
+                    await piyo.sendFileFromUrl(from, `${urllolhuman}/api/nulis?apikey=${lolhuman}&text=${encodeURIComponent(q)}`, 'nulis.jpg', `Ditulis selama: ${processTime(t, moment())} _detik_`, id)
+                    break
+                case 'openai':
+                    if (args.length == 0) {
+                        return piyo.reply(from, `Untuk ngobrol dengan OpenAi\nketik: ${prefix}openai teks\n\ncontoh: ${prefix}openai Ai adalah?`, id)
+                    }
+
+                    await piyo.reply(from, ind.wait(), id)
+                    const openais = await axios.get(`${urllolhuman}/api/openai-turbo?apikey=${lolhuman}&text=${encodeURIComponent(q)}&system=${encodeURIComponent(q)}`)
+                    await piyo.reply(from, openais.data.result, id)
+                    break
+                case 'simi':
+                    if (args.length == 0) {
+                        return piyo.reply(from, `Untuk ngobrol dengan Simi\nketik: ${prefix}simi teks\n\ncontoh: ${prefix}simi pakabs?`, id)
+                    }
+
+                    // await piyo.reply(from, ind.wait(), id)
+                    const simis = await axios.get(`${urllolhuman}/api/simi?apikey=${lolhuman}&text=${encodeURIComponent(q)}&badword=true`)
+                    await piyo.reply(from, simis.data.result, id)
+                    break
+                case 'nulis':
+                    if (args.length == 0) {
+                        return piyo.reply(from, `Untuk menulis dikertas\nketik: ${prefix}nulis teks\n\ncontoh: ${prefix}nulis lorem ipsum`, id)
+                    }
+
+                    await piyo.reply(from, ind.wait(), id)
+                    await piyo.sendFileFromUrl(from, `${urllolhuman}/api/nulis?apikey=${lolhuman}&text=${encodeURIComponent(q)}`, 'nulis.jpg', `Ditulis selama: ${processTime(t, moment())} _detik_`, id)
+                    break
+                case '2xscale':
+                    await piyo.reply(from, ind.wait(), id)
+                    if (isMedia && type === 'image' || isQuotedImage) {
+                        const xscaleMedia = isQuotedImage ? quotedMsg : message
+                        const data2x = await decryptMedia(xscaleMedia, uaOverride)
+                        const foto2xscl = await uploadImages(data2x, `2xscale.${sender.id}`)
+
+                        await piyo.sendFileFromUrl(from, `${urllolhuman}/api/upscale?apikey=${lolhuman}&img=${foto2xscl}`, '2xscale.jpg', '', id)
+                    } else if (q) {
+                        await piyo.sendFileFromUrl(from, `${urllolhuman}/api/upscale?apikey=${lolhuman}&img=${encodeURIComponent(q)}`, '2xscale.jpg', '', id)
+                    }
+                    break
+                case 'removebg':
+                    await piyo.reply(from, ind.wait(), id)
+                    if (isMedia && type === 'image' || isQuotedImage) {
+                        const rmvbg = isQuotedImage ? quotedMsg : message
+                        const datarmvbg = await decryptMedia(rmvbg, uaOverride)
+                        const fotormvbg = await uploadImages(datarmvbg, `removebg.${sender.id}`)
+
+                        await piyo.sendFileFromUrl(from, `${urllolhuman}/api/removebg?apikey=${lolhuman}&img=${fotormvbg}`, 'removebg.jpg', '', id)
+                    } else if (q) {
+                        await piyo.sendFileFromUrl(from, `${urllolhuman}/api/removebg?apikey=${lolhuman}&img=${encodeURIComponent(q)}`, 'removebg.jpg', '', id)
+                    }
+                    break
                 case 'cekjodoh':
-                    if (args.length !== 2) {
+                    if (args.length == 0) {
                         return piyo.reply(from, `Untuk mengecek jodoh melalui nama\nketik: ${prefix}cekjodoh nama pasangan\n\ncontoh: ${prefix}cekjodoh aku kamu\n\nhanya bisa pakai nama panggilan (satu kata)`, id)
                     }
 
                     await piyo.reply(from, ind.wait(), id)
                     rugaapi.cekjodoh(args[0], args[1])
                         .then(async (res) => {
-                            await piyo.sendFileFromUrl(from, `${res.link}`, '', `${res.text}`, id)
+                            await piyo.sendFileFromUrl(from, `${res.link}`, 'inifile.jpg', `${res.text}`, id)
                         })
-                    break;
+                    break
                 case 'spekhp':
-                    if (!q) return await piyo.reply(from, ind.wrongFormat(), id)
+
                     await piyo.reply(from, ind.wait(), id)
                     try {
                         rugaapi.gsmarena(q)
@@ -2834,9 +2980,9 @@ module.exports = HandleMsg = async (piyo, message) => {
                     }
                     break
                 //////////////////////////////////////////// Random Kata////////////////////////////////////////////////////////
-                case 'lirik':
+                case 'liriklagu':
                     await piyo.reply(from, ind.wait(), id)
-                    const lirikk = await axios.get(`${urllolhuman}/api/lirik?apikey=${lolhuman}&query=${q}`)
+                    const lirikk = await axios.get(`${urllolhuman}/api/lirik?apikey=${lolhuman}&query=${encodeURIComponent(q)}`)
                     const lik = lirikk.data.result
                     await piyo.reply(from, `*LIRIK*:\n${lik.lirik}`, id)
                     break
@@ -2883,13 +3029,6 @@ module.exports = HandleMsg = async (piyo, message) => {
                             piyo.reply(from, 'Ada yang Error!', id)
                         })
                     break
-                case 'quote':
-                    const quotex = await rugaapi.quote()
-                    await piyo.reply(from, quotex, id)
-                        .catch(() => {
-                            piyo.reply(from, 'Ada yang Error!', id)
-                        })
-                    break
 
                 case 'cersex':
                     await piyo.sendText(from, ind.wait(), id)
@@ -2908,8 +3047,9 @@ module.exports = HandleMsg = async (piyo, message) => {
 
                 case 'nhpdf':
                     if (args.length === 0) return piyo.reply(from, `Pake Kodenya mas`, id)
+
                     await piyo.reply(from, ind.wait(), id)
-                    const nh = await axios.get(`${urllolhuman}/api/nhentaipdf/${q}?apikey=${lolhuman}`)
+                    const nh = await axios.get(`${urllolhuman}/api/nhentaipdf/${encodeURIComponent(q)}?apikey=${lolhuman}`)
                     await piyo.sendFileFromUrl(from, nh.data.result, 'piyo.pdf', '', id)
                     break
 
@@ -2946,7 +3086,7 @@ module.exports = HandleMsg = async (piyo, message) => {
 
                 // Other Command
                 case 'lk21':
-                    if (!q) return await piyo.reply(from, ind.wrongFormat(), id)
+
                     await piyo.reply(from, ind.wait(), id)
                     rugaapi.movie(q)
                         .then(async ({ result }) => {
@@ -2958,7 +3098,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                         })
                     break
                 case 'cekongkir':
-                    if (!q) return await piyo.reply(from, ind.wrongFormat(), id)
+
                     await piyo.reply(from, ind.wait(), id)
                     const kurir = q.substring(0, q.indexOf('|') - 1)
                     const askot = q.substring(q.indexOf('|') + 2, q.lastIndexOf('|') - 1)
@@ -2973,7 +3113,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                         })
                     break
                 case 'shopee':
-                    if (!q) return await piyo.reply(from, ind.wrongFormat(), id)
+
                     const namaBarang = q.substring(0, q.indexOf('|') - 1)
                     const jumlahBarang = q.substring(q.lastIndexOf('|') + 2)
                     await piyo.reply(from, ind.wait(), id)
@@ -3006,7 +3146,6 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
                 case 'playstore':
                 case 'ps':
-                    if (!q) return await piyo.reply(from, ind.wrongFormat(), id)
                     await piyo.reply(from, ind.wait(), id)
                     try {
                         rugaapi.playstore(q)
@@ -3050,23 +3189,6 @@ module.exports = HandleMsg = async (piyo, message) => {
                     }
                     break
 
-                case 'tts':
-                    if (args.length == 0) {
-                        return piyo.reply(from, `Mengubah teks menjadi sound (google voice)\nketik: ${prefix}tts <kode_bahasa> <teks>\ncontoh : ${prefix}tts id halo\nuntuk kode bahasa cek disini : https://anotepad.com/note/read/5xqahdy8`, id)
-                    }
-                    const ttsGB = require('node-gtts')(args[0])
-                    const dataText = body.slice(8)
-                    if (dataText === '') { 
-                        return piyo.reply(from, '/tts id teksnya..', id)
-                    }
-                    try {
-                        ttsGB.save('./media/tts.mp3', dataText, function () {
-                            piyo.sendPtt(from, './media/tts.mp3', id)
-                        })
-                    } catch (err) {
-                        piyo.reply(from, err, id)
-                    }
-                    break
                 case 'tomp3':
                     if ((isMedia || isQuotedVideo || isQuotedFile)) {
                         piyo.reply(from, ind.wait(), id)
@@ -3153,6 +3275,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     piyo.sendText(from, toll)
                     break
                 case 'shortlink':
+
                     if (args.length == 0) return piyo.reply(from, `ketik ${prefix}shortlink <url>`, id)
                     if (!isUrl(args[0])) return piyo.reply(from, 'Maaf, url yang kamu kirim tidak valid.', id)
                     const shortlink = await urlShortener(args[0])
@@ -3161,20 +3284,11 @@ module.exports = HandleMsg = async (piyo, message) => {
                             piyo.reply(from, 'Ada yang Error!', id)
                         })
                     break
-                case 'bapakfont':
-                    if (args.length == 0) return piyo.reply(from, `Mengubah kalimat menjadi alayyyyy\n\nketik ${prefix}bapakfont kalimat`, id)
-                    rugaapi.bapakfont(body.slice(11))
-                        .then(async (res) => {
-                            await piyo.reply(from, `${res}`, id)
-                        })
-                    break
                 case 'mtk':
-
-                    if (!q) return await piyo.reply(from, ind.wrongFormat(), id)
                     if (typeof Math_js.evaluate(q) !== "number") {
                         await piyo.reply(from, ind.notNum(q), id)
                     } else {
-                        await piyo.reply(from, `*「 MATH 」*\n\n${q} = ${Math_js.evaluate(q)}`, id)
+                        await piyo.reply(from, `*「 MATH 」*\n\n${encodeURIComponent(q)} = ${Math_js.evaluate(q)}`, id)
                     }
                     break
                 case 'kuismtk':
@@ -3187,6 +3301,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
 
                 case 'hilih':
+
                     if (args.length == 0) return piyo.reply(from, `Mengubah kalimat menjadi hilih\n\nketik ${prefix}hilih kalimat`, id)
                     rugaapi.hilih(body.slice(11))
                         .then(async (res) => {
@@ -3194,10 +3309,12 @@ module.exports = HandleMsg = async (piyo, message) => {
                         })
                     break
                 case 'nhdl':
+
                     if (isGroupMsg) {
                         if (!isNsfw) return await piyo.reply(from, ind.notNsfw(), id)
                     }
                 case 'wiki':
+
                     if (args.length == 0) return piyo.reply(from, `Untuk mencari suatu kata dari wikipedia\nketik: ${prefix}wiki [kata]`, id)
                     const wikip = body.slice(6)
                     const wikis = await rugaapi.wiki(wikip)
@@ -3205,28 +3322,6 @@ module.exports = HandleMsg = async (piyo, message) => {
                         .catch(() => {
                             piyo.reply(from, 'Ada yang Error!', id)
                         })
-                    break
-                case 'cuaca':
-                    if (args.length == 0) return piyo.reply(from, `Untuk melihat cuaca pada suatu daerah\nketik: ${prefix}cuaca [daerah]`, id)
-                    const cuacaq = body.slice(7)
-                    const cuacap = await rugaapi.cuaca(cuacaq)
-                    await piyo.reply(from, cuacap, id)
-                        .catch(() => {
-                            piyo.reply(from, 'Ada yang Error!', id)
-                        })
-                    break
-                case 'chord':
-                    if (args.length == 0) return piyo.reply(from, `Untuk mencari lirik dan chord dari sebuah lagu\bketik: ${prefix}chord [judul_lagu]`, id)
-                    const chordq = body.slice(7)
-                    const chordd = await axios.get(`${urllolhuman}/api/chord?apikey=${lolhuman}&query=${q}`)
-                    const chorde = chordd.data.result
-                    await piyo.reply(from, `*Judul :* ${chorde.title}\n*Chord :* \n ${chorde.chord}`, id)
-                        .catch(() => {
-                            piyo.reply(from, 'Ada yang Error!', id)
-                        })
-                    break
-                case 'waktu':
-                    piyo.reply(from, `*Waktu xKiwilxbot Aktif* \n\nPAGI = 07:00 - 10:00\n\nSIANG = 13:00 - 16:00\n\nMALAM = 19:00 - 22:00`, id)
                     break
                 case 'listbacot':
                     const bacul = dbcot
@@ -3270,31 +3365,6 @@ module.exports = HandleMsg = async (piyo, message) => {
                         }
                     }
                     break
-                case 'simisimi':
-                    if (!isGroupMsg) return piyo.reply(from, 'Maaf, perintah ini hanya dapat dipakai didalam grup!', id)
-                    piyo.reply(from, `Untuk mengaktifkan simi-simi pada Group Chat\n\nPenggunaan\n${prefix}simi on --mengaktifkan\n${prefix}simi off --nonaktifkan\n`, id)
-                    break
-                case 'simi':
-                    if (!isGroupMsg) return piyo.reply(from, 'Maaf, perintah ini hanya dapat dipakai didalam grup!', id)
-                    if (!isGroupAdmins) return piyo.reply(from, 'Gagal, perintah ini hanya dapat digunakan oleh admin grup!', id)
-                    if (args.length !== 1) return piyo.reply(from, `Untuk mengaktifkan simi-simi pada Group Chat\n\nPenggunaan\n${prefix}simi on --mengaktifkan\n${prefix}simi off --nonaktifkan\n`, id)
-                    if (args[0] == 'on') {
-                        simi.push(chatId)
-                        fs.writeFileSync('./settings/simi.json', JSON.stringify(simi))
-                        piyo.reply(from, 'Mengaktifkan bot simi-simi!', id)
-                    } else if (args[0] == 'off') {
-                        let inxx = simi.indexOf(chatId)
-                        simi.splice(inxx, 1)
-                        fs.writeFileSync('./settings/simi.json', JSON.stringify(simi))
-                        piyo.reply(from, 'Menonaktifkan bot simi-simi!', id)
-                    } else {
-                        piyo.reply(from, `Untuk mengaktifkan simi-simi pada Group Chat\n\nPenggunaan\n${prefix}simi on --mengaktifkan\n${prefix}simi off --nonaktifkan\n`, id)
-                    }
-                    break
-                case 'simisimi':
-                    if (!isGroupMsg) return piyo.reply(from, 'Maaf, perintah ini hanya dapat dipakai didalam grup!', id)
-                    piyo.reply(from, `Untuk mengaktifkan simi-simi pada Group Chat\n\nPenggunaan\n${prefix}simi on --mengaktifkan\n${prefix}simi off --nonaktifkan\n`, id)
-                    break
                 
                 //////////////////////////////////////////////////////Owner Bot////////////////////////////////////////////////////
                 case 'getses':
@@ -3321,7 +3391,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                 case 'eval':
                 case 'ev':
                     if (!isOwnerBot) return await piyo.reply(from, ind.ownerOnly(), id)
-                    if (!q) return await piyo.reply(from, ind.wrongFormat(), id)
+
                     try {
                         let evaled = await eval(q)
                         if (typeof evaled !== 'string') evaled = require('util').inspect(evaled)
@@ -3365,6 +3435,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                 }
                     break
                 case 'sewa':
+
                     if (!isOwnerBot) return await piyo.reply(from, ind.ownerOnly(), id)
                     if (ar.length == 0) return piyo.reply(from, `Ketik /sewa add/del harinya\nContoh: /sewa add 30d`, id)
                     if (ar.length == 1) return piyo.reply(from, `Ketik /sewa add/del harinya\nContoh: /sewa add 30d`, id)
@@ -3388,7 +3459,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                         await piyo.reply(from, ind.doneOwner(), id)
                     }
                     break
-             case 'sendsewa':
+                case 'sendsewa':
                     let linkRegex = /chat\.whatsapp\.com\/(?:invite\/)?([0-9A-Za-z]{20,24})/i
                     if (ar.length == 0) return piyo.reply(from, `Ketik /sendsewa linknya harinya\n\nExample: /sendsewa link 30d`, id)
                     if (ar.length == 1) return piyo.reply(from, `Ketik /sendsewa linknya harinya\n\nExample: /sendsewa link 30d`, id)
@@ -3407,6 +3478,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break   
                     
                 case 'bc': //untuk broadcast atau promosi
+
                     if (!isOwnerBot) return piyo.reply(from, 'Perintah ini hanya untuk Owner bot!', id)
                     if (args.length == 0) return piyo.reply(from, `Untuk broadcast ke semua chat ketik:\n${prefix}bc [isi chat]`)
                     let msg = body.slice(4)
@@ -3422,7 +3494,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                     if (!isOwnerBot) return piyo.reply(from, 'Perintah ini hanya untuk Owner bot', id)
                     const allGrouppz = await piyo.getAllGroups()
                     for (let gclistt of allGrouppz) {
-                        await piyo.sendText(gclistt.contact.id, `${q}`)
+                        await piyo.sendText(gclistt.contact.id, `${encodeURIComponent(q)}`)
                     }
                     piyo.reply(from, 'Succes Bc all group!', id)
                     break
@@ -3437,14 +3509,15 @@ module.exports = HandleMsg = async (piyo, message) => {
                         const chaim = await piyo.getAllChatIds()
                         for (let grp of chaim) {
                             var cukk = await piyo.getChatById(grp)
-                            if (!cukk.isReadOnly) piyo.sendFile(grp, `./media/images/bc.jpg`, 'inifile.jpg', `[PIYOBOT BROADCAST]\n\n${q}`, '', id)
-                            if (cukk.isReadOnly) piyo.sendFile(grp, `./media/images/bc.jpg`, 'inifile.jpg', `[PIYOBOT BROADCAST]\n\n${q}`, '', id)
+                            if (!cukk.isReadOnly) piyo.sendFile(grp, `./media/images/bc.jpg`, 'inifile.jpg', `[PIYOBOT BROADCAST]\n\n${encodeURIComponent(q)}`, '', id)
+                            if (cukk.isReadOnly) piyo.sendFile(grp, `./media/images/bc.jpg`, 'inifile.jpg', `[PIYOBOT BROADCAST]\n\n${encodeURIComponent(q)}`, '', id)
                         }
                         await piyo.reply(from, 'Broadcast Success!', id)
                         fs.unlinkSync(`./media/images/bc.jpg`)
                     }
                     break
                 case 'ban':
+
                     if (!isOwnerBot) return piyo.reply(from, 'Perintah ini hanya untuk Owner bot!', id)
                     if (args.length == 0) return piyo.reply(from, `Untuk banned seseorang agar tidak bisa menggunakan commands\n\nCaranya ketik: \n${prefix}ban add 628xx --untuk mengaktifkan\n${prefix}ban del 628xx --untuk nonaktifkan\n\ncara cepat ban banyak digrup ketik:\n${prefix}ban @tag @tag @tag`, id)
                     if (ar[0] === 'add') {
