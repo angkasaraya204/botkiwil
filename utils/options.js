@@ -4,16 +4,15 @@
  * @param  {Boolean} headless
  */
 
-module.exports = options = (start) => {
+module.exports = options = (headless, start) => {
     const options = {
         sessionId: 'piyobot',
-        headless: true,
+        headless: headless,
         multiDevice: true,
         qrTimeout: 0,
         authTimeout: 0,
         restartOnCrash: start,
         cacheEnabled: false,
-        // useChrome: true
         chromiumArgs: [
             // '--disable-setuid-sandbox',
             // '--aggressive-cache-discard',
