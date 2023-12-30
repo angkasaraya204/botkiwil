@@ -1975,15 +1975,15 @@ module.exports = HandleMsg = async (piyo, message) => {
                             var pfp = dp
                         }
                         if (contact == undefined) {
-                            var nama = '_Dia pemalu, tidak mau menampilkan namanya_'
+                            var namacontact = '_Dia pemalu, tidak mau menampilkan namanya_'
                         } else {
-                            var nama = contact
+                            var namacontact = contact
                         }
-                        const caption = `*Detail Member* ✨ \n\n● *Name :* ${nama}\n● *Bio :* ${bio.status}\n● *Chat link :* wa.me/${sender.id.replace('@c.us', '')}\n● *Role :* ${adm}\n● *Banned by Bot :* ${ban ? '✔' : '❌'}\n● *Blocked by Bot :* ${isblocked ? '✔' : '❌'}\n● *Chat with bot :* ${isOnline}`
+                        const caption = `*Detail Member* ✨ \n\n● *Name :* ${namacontact}\n● *Bio :* ${bio.status}\n● *Chat link :* wa.me/${sender.id.replace('@c.us', '')}\n● *Role :* ${adm}\n● *Banned by Bot :* ${ban ? '✔' : '❌'}\n● *Blocked by Bot :* ${isblocked ? '✔' : '❌'}\n● *Chat with bot :* ${isOnline}`
                         piyo.sendFileFromUrl(from, pfp, 'dp.jpg', caption)
                     }
                 }
-                    break
+                break
 
                 case 'bugreport': {
 
@@ -2213,12 +2213,12 @@ module.exports = HandleMsg = async (piyo, message) => {
                         const sauceanimeLink = await uploadImages(sauceanimeData, `sauceanime.${sender.id}`)
 
                         const sauceanime = await axios.get(`${urlzoner}/api/webanime/sauce?url=${sauceanimeLink}&apikey=${zoner}`)
-                        let sauceanimeMessage = "";
+                        let sauceanimeMessage = "Terdeteksi Sumber Berikut :";
 
                         if (sauceanime.data && sauceanime.data.result && sauceanime.data.result.length > 0) {
                             for (const resultsauce of sauceanime.data.result) {
                                 await piyo.sendFileFromUrl(from, resultsauce.thumbnail, 'inifile.jpg', '', id)
-                                sauceanimeMessage += `\n\n*Terdeteksi Sumber Berikut :* \n\n*Url :* ${resultsauce.url}\n*Web :* ${resultsauce.site}\n*Mirip :* ${resultsauce.similarity}\n*Author :* ${resultsauce.authorName}\n*AuthorUrl :* ${resultsauce.authorUrl}`
+                                sauceanimeMessage += `\n\n• *Url :* ${resultsauce.url}\n• *Web :* ${resultsauce.site}\n• *Mirip :* ${resultsauce.similarity}\n• *Author :* ${resultsauce.authorName}\n• *AuthorUrl :* ${resultsauce.authorUrl}`
                             }
                             await piyo.reply(from, sauceanimeMessage, id);
                         } else {
@@ -2231,7 +2231,7 @@ module.exports = HandleMsg = async (piyo, message) => {
                         if (sauceanime.data && sauceanime.data.result && sauceanime.data.result.length > 0) {
                             for (const resultsauce of sauceanime.data.result) {
                                 await piyo.sendFileFromUrl(from, resultsauce.thumbnail, 'inifile.jpg', '', id)
-                                responsauceMessage += `*Terdeteksi Sumber Berikut :* \n\n*Url :* ${resultsauce.url}\n*Web :* ${resultsauce.site}\n*Mirip :* ${resultsauce.similarity}\n*Author :* ${resultsauce.authorName}\n*AuthorUrl :* ${resultsauce.authorUrl}`
+                                responsauceMessage += `\n\n*Url :* ${resultsauce.url}\n*Web :* ${resultsauce.site}\n*Mirip :* ${resultsauce.similarity}\n*Author :* ${resultsauce.authorName}\n*AuthorUrl :* ${resultsauce.authorUrl}`
                             }
                             await piyo.reply(from, sauceanimeMessage, id);
                         } else {
@@ -2494,12 +2494,12 @@ module.exports = HandleMsg = async (piyo, message) => {
 
                     await piyo.reply(from, ind.wait(), id);
                     const kucingpoi = await axios.get(`${urllolhuman}/api/nekopoisearch?apikey=${lolhuman}&query=${encodeURIComponent(q)}`)
-                    let kucingpoiMessage = "";
+                    let kucingpoiMessage = "Terdeteksi Nama Berikut :";
 
                     if (kucingpoi.data && kucingpoi.data.result && kucingpoi.data.result.length > 0) {
                         for (const resultneko of kucingpoi.data.result) {
                             await piyo.sendFileFromUrl(from, resultneko.thumbnail, 'inifile.jpg', '', id)
-                            kucingpoiMessage += `\n\n*Judul* : ${resultneko.title}\n*Link* : ${resultneko.link}`;
+                            kucingpoiMessage += `\n\n• *Judul* : ${resultneko.title}\n• *Link* : ${resultneko.link}`;
                         }
                         await piyo.reply(from, kucingpoiMessage, id)
                     } else {
@@ -2527,27 +2527,25 @@ module.exports = HandleMsg = async (piyo, message) => {
                     break
                 case 'searchnhen':
                     if (args.length === 0){
-                        return piyo.reply(from, `Untuk mencari kucingpoi melalui judul\nketik: ${prefix}kucingpoi judul\n\ncontoh: ${prefix}kucingpoi my mother`, id)
+                        return piyo.reply(from, `Untuk mencari nhentai melalui judul\nketik: ${prefix}searchnhen judul\n\ncontoh: ${prefix}searchnhen hentai`, id)
                     }
 
-
                     await piyo.reply(from, ind.wait(), id);
-                    // Lakukan permintaan ke API kucingpoi
                     const respondlhen = await axios.get(`${urllolhuman}/api/nhentaisearch?apikey=${lolhuman}&query=${encodeURIComponent(q)}`);
+                    let searchnhenMessage = "Terdeteksi Nama Berikut :";
 
                     if (respondlhen.data && respondlhen.data.result && respondlhen.data.result.length > 0) {
-                        // Ambil data pertama dari array result
-                        const nhenData = respondlhen.data.result[0];
-                        // Tampilkan hasil
-                        await piyo.reply(from, `• *Kode* : ${nhenData.id}\n• *Judul* : ${nhenData.title_native}\n• *Eng* : ${nhenData.title_english}\n• *Jp* : ${nhenData.title_japanese}\n• *Hal* : ${nhenData.page}`, id);
+                        for (const resultnhen of respondlhen.data.result) {
+                            searchnhenMessage += `\n\n• *Kode* : ${resultnhen.id}\n• *Judul* : ${resultnhen.title_native}\n• *Eng* : ${resultnhen.title_english}\n• *Jp* : ${resultnhen.title_japanese}\n• *Hal* : ${resultnhen.page}`
+                        }
+                        await piyo.reply(from, searchnhenMessage, id);
                     } else {
-                        // Beri tahu pengguna bahwa judul tidak ditemukan
                         await piyo.reply(from, 'Judul tidak ditemukan.', id);
                     }
                     break
-                case 'nhen':
+                case 'kodenhen':
                     if (args.length === 0){
-                        return piyo.reply(from, `Untuk mencari detail nhen melalui kode\nketik: ${prefix}nhen kode\n\ncontoh: ${prefix}nhen 344253`, id)
+                        return piyo.reply(from, `Untuk mencari detail nhentai melalui kode\nketik: ${prefix}kodenhen kode\n\ncontoh: ${prefix}kodenhen 344253`, id)
                     }
 
                     await piyo.reply(from, ind.wait(), id)
@@ -2577,14 +2575,14 @@ module.exports = HandleMsg = async (piyo, message) => {
 
                     await piyo.reply(from, ind.wait(), id)
                     const pxv = await axios.get(`${urllolhuman}/api/pixiv?apikey=${lolhuman}&query=${encodeURIComponent(q)}`)
-                    let pixivMessage = "";
+                    let pixivMessage = "Terdeteksi Nama Berikut :";
 
                     if (pxv.data && pxv.data.result && pxv.data.result.length > 0) {
                         for (const resultpixiv of pxv.data.result) {
                             await piyo.sendFileFromUrl(from, resultpixiv.image, 'inifile.jpg', '', id)
-                            pixivMessage += `\n\n*ID* : ${resultpixiv.id}\n*Judul* : ${resultpixiv.title}`
+                            pixivMessage += `\n\n• *ID* : ${resultpixiv.id}\n• *Judul* : ${resultpixiv.title}`
                         }
-                        await piyo.reply(from, '*Terdeteksi Nama Berikut :*', pixivMessage, id)
+                        await piyo.reply(from, pixivMessage, id)
                     } else {
                         await piyo.reply(from, 'Nama tidak ditemukan.', id);
                     }
@@ -2597,16 +2595,59 @@ module.exports = HandleMsg = async (piyo, message) => {
                     await piyo.reply(from, ind.wait(), id)
                     const pxvdl = await axios.get(`${urllolhuman}/api/pixivdl/${encodeURIComponent(q)}?apikey=${lolhuman}`)
                     console.log('Pixiv API Response:', pxvdl.data);
-                    let pixivdlMessage = "";
+                    let pixivdlMessage = "Terdeteksi Nama Berikut :";
 
                     if (pxvdl.data && pxvdl.data.result && pxvdl.data.result.length > 0) {
                         for (const resultpixivdl of pxvdl.data.result) {
                             await piyo.sendFile(from, resultpixivdl.images, 'inifile.jpg', '', id)
-                            pixivdlMessage += `\n\n*Terdeteksi Nama Berikut :* \n\n*ID* : ${resultpixivdl.id}\n*Judul* : ${resultpixivdl.title}`;
+                            pixivdlMessage += `\n\n*ID* : ${resultpixivdl.id}\n*Judul* : ${resultpixivdl.title}`;
                         }
                         await piyo.reply(from, pixivdlMessage, id)
                     } else {
                         await piyo.reply(from, 'Nama tidak ditemukan.', id);
+                    }
+                    break
+                // case 'ktpmaker':
+                //     if (args.length === 0){
+                //         return piyo.reply(from, `Untuk membuat ktp palsu\nketik: \n\n${prefix}ktpmaker\nnik: \nprovinsi: \nkabupaten: \nnama: \nttl: \njenisKelamin: \nalamat: \nagama: \nstatusKawin: \npekerjaan: \nkewarganegaraan: \nbatasBerlaku: \nlinkGambar: \n\nEmang banyak jadi jangan ngeluh.`, id)
+                //     }
+
+                //     const ktpParams = body.slice(11).split(' ');
+                //     if (ktpParams.length !== 13) {
+                //         await piyo.reply(from, 'Mohon sertakan semua parameter yang diperlukan.', id);
+                //         break;
+                //     }
+
+                //     await piyo.reply(from, ind.wait(), id)
+                //     const [nik, provinsi, kabupaten, nama, ttl, jenisKelamin, alamat, agama, statusKawin, pekerjaan, kewarganegaraan, batasBerlaku, linkGambar] = ktpParams;
+
+                //     const ktpmakerResponse = await axios.get(`${urllolhuman}/api/ktpmaker?apikey=${lolhuman}&nik=${nik}&prov=${provinsi}&kabu=${kabupaten}&name=${encodeURIComponent(nama)}&ttl=${encodeURIComponent(ttl)}&jk=${encodeURIComponent(jenisKelamin)}&jl=${encodeURIComponent(alamat)}&agama=${encodeURIComponent(agama)}&nikah=${encodeURIComponent(statusKawin)}&kerja=${encodeURIComponent(pekerjaan)}&warga=${encodeURIComponent(kewarganegaraan)}&until=${encodeURIComponent(batasBerlaku)}&img=${encodeURIComponent(linkGambar)}`);
+                //     const ktpmakerResult = ktpmakerResponse.data;
+
+                //     // const formattedMessage = `/ktpmaker\nnik: ${ktpmakerResult.nik}\nprovinsi: ${ktpmakerResult.provinsi}\nkabupaten: ${ktpmakerResult.kabupaten}\nnama: ${ktpmakerResult.nama}\nttl: ${ktpmakerResult.ttl}\njenisKelamin: ${ktpmakerResult.jenisKelamin}\nalamat: ${ktpmakerResult.alamat}\nagama: ${ktpmakerResult.agama}\nstatusKawin: ${ktpmakerResult.statusKawin}\npekerjaan: ${ktpmakerResult.pekerjaan}\nkewarganegaraan: ${ktpmakerResult.kewarganegaraan}\nbatasBerlaku: ${ktpmakerResult.batasBerlaku}\nlinkGambar: ${ktpmakerResult.linkGambar}`;
+
+                //     await piyo.reply(from, ktpmakerResult.result, 'ktp.jpg', '', id);
+                //     // if (ktpmakerResult && ktpmakerResult.result && ktpmakerResult.result.length > 0) {
+                //     //     const ktpData = ktpmakerResult.result;
+                //     //     console.log('ktpData:', ktpData);
+                //     // } else {
+                //     //     await piyo.reply(from, 'Gagal membuat KTP. Mohon cek kembali parameter yang diberikan.', id);
+                //     // }
+                //     break;
+                case 'ktpmaker':
+                    if (args.length === 0) {
+                        return piyo.reply(from, `Untuk membuat ktp palsu\nketik: \n\n${prefix}ktpmaker\nnik: \nprovinsi: \nkabupaten: \nnama: \nttl: \njenisKelamin: \nalamat: \nagama: \nstatusKawin: \npekerjaan: \nkewarganegaraan: \nbatasBerlaku: \nlinkGambar: \n\nEmang banyak jadi jangan ngeluh.`, id);
+                    }
+                
+                    const [nik, provinsi, kabupaten, namaktp, ttlktp, jkktp, jlktp, rtrw, lurah, camat, agama, nikah, pekerjaan, warga, untilktp, imgktp] = args;
+                    await piyo.reply(from, ind.wait(), id);
+                
+                    try {
+                        const resultss = await rugaapi.ktpmakers(nik, provinsi, kabupaten, namaktp, ttlktp, jkktp, jlktp, rtrw, lurah, camat, agama, nikah, pekerjaan, warga, untilktp, imgktp);
+                        await piyo.reply(from, resultss, id);
+                    } catch (error) {
+                        console.error(error);
+                        await piyo.reply(from, 'Terjadi kesalahan saat membuat KTP palsu.', id);
                     }
                     break
                 
