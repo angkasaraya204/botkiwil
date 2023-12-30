@@ -16,11 +16,11 @@ module.exports = options = (start) => {
         // useChrome: true
         chromiumArgs: [
             // '--disable-setuid-sandbox',
-            '--aggressive-cache-discard',
-            '--disable-cache',
-            '--disable-application-cache',
-            '--disable-offline-load-stale-cache',
-            '--disk-cache-size=0'
+            // '--aggressive-cache-discard',
+            // '--disable-cache',
+            // '--disable-application-cache',
+            // '--disable-offline-load-stale-cache',
+            // '--disk-cache-size=0'
         ]
 
     }
