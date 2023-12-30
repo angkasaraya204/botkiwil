@@ -13,15 +13,15 @@ module.exports = options = (start) => {
         authTimeout: 0,
         restartOnCrash: start,
         cacheEnabled: false,
-        useChrome: true
-        // chromiumArgs: [
-        //     '--disable-setuid-sandbox',
-        //     '--aggressive-cache-discard',
-        //     '--disable-cache',
-        //     '--disable-application-cache',
-        //     '--disable-offline-load-stale-cache',
-        //     '--disk-cache-size=0'
-        // ]
+        // useChrome: true
+        chromiumArgs: [
+            // '--disable-setuid-sandbox',
+            '--aggressive-cache-discard',
+            '--disable-cache',
+            '--disable-application-cache',
+            '--disable-offline-load-stale-cache',
+            '--disk-cache-size=0'
+        ]
 
     }
     return options
