@@ -40,9 +40,9 @@ require('./lib/menu.js')
 nocache('./lib/menu.js', module => console.log(`'${module}' Updated!`))
 const start = (piyo = new Client()) => {
     console.log(color(figlet.textSync('----------------', { horizontalLayout: 'default' })))
-    console.log(color(figlet.textSync('Piyo Bot', { font: 'Ghost', horizontalLayout: 'default' })))
+    console.log(color(figlet.textSync('xKiwilx Bot', { font: 'Ghost', horizontalLayout: 'default' })))
     console.log(color(figlet.textSync('----------------', { horizontalLayout: 'default' })))
-    console.log(color('[DEV]'), color('Piyo', 'yellow'))
+    console.log(color('[DEV]'), color('xKiwilx', 'yellow'))
     console.log(color('[~>>]'), color('BOT Started!', 'darkblue'))
 
     // Mempertahankan sesi agar tetap nyala
@@ -69,7 +69,7 @@ const start = (piyo = new Client()) => {
                 })
             } else {
                 await piyo.simulateTyping(chat.id, true).then(async () => {
-                    await piyo.sendText(chat.id, `Hai anjg~, Saya Whatsapp Bot Pintar.  Untuk memulai bot silahkan ketik ${prefix}menu`)
+                    await piyo.sendText(chat.id, `Hai, Saya Whatsapp Bot Pintar.  Untuk memulai bot silahkan ketik ${prefix}menu`)
                 })
             }
         }

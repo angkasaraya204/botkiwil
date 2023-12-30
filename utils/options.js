@@ -4,24 +4,25 @@
  * @param  {Boolean} headless
  */
 
-module.exports = options = (headless, start) => {
+module.exports = options = (start) => {
     const options = {
         sessionId: 'piyobot',
-        headless: headless,
+        headless: true,
         multiDevice: true,
         qrTimeout: 0,
         authTimeout: 0,
         restartOnCrash: start,
         cacheEnabled: false,
-        chromiumArgs: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--aggressive-cache-discard',
-            '--disable-cache',
-            '--disable-application-cache',
-            '--disable-offline-load-stale-cache',
-            '--disk-cache-size=0'
-        ]
+        useChrome: true
+        // chromiumArgs: [
+        //     '--disable-setuid-sandbox',
+        //     '--aggressive-cache-discard',
+        //     '--disable-cache',
+        //     '--disable-application-cache',
+        //     '--disable-offline-load-stale-cache',
+        //     '--disk-cache-size=0'
+        // ]
+
     }
     return options
 }
