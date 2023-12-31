@@ -1131,33 +1131,33 @@ module.exports = HandleMsg = async (piyo, message) => {
                         await piyo.reply(from, `Tidak ada gambar! Silahkan kirim gambar dengan caption ${prefix}meme <teks_atas> | <teks_bawah>\ncontoh: ${prefix}meme teks atas | teks bawah`, id)
                     }
                     break
-                case 'addsticker':
-                    if (!q) return piyo.reply(from, `Hai  Kak ${pushname} untuk menggunakan fitur save stiker ketik */addsticker* _Nama nya_`, id)
-                    if (quotedMsg) {
-                        if (quotedMsg.type === 'sticker') {
-                            try {
-                                mediaData = await decryptMedia(quotedMsg, uaOverride)
-                                fs.writeFileSync(`./media/sticker/${encodeURIComponent(q)}.jpg`, mediaData)
-                                piyo.reply(from, `Stiker berhasil tersimpan!\n\nUntuk melihat list ketik */liststiker*`, id)
-                            } catch (err) {
-                                piyo.reply(from, `Gagal save sticker!`, id)
-                                piyo.reply(ownerNumber, util.format(err), id)
-                            }
-                        } else {
-                            piyo.reply(from, `Harus reply stiker!`, id)
-                        }
-                    } else {
-                        piyo.reply(from, `Gaada data yang direply gan`, id)
-                    }
-                    break
-                case 'liststicker':
-                    const liststicker = fs.readdirSync('./media/sticker/')
-                    let capliststik = `Ketik perintah */getstiker _Nama nya_* untuk mengambil data stiker\n\n*Jumlah stiker* : ${liststicker.length}\n\n*Stiker tersimpan :*\n`
-                    for (let i = 0; i < liststicker.length; i++) {
-                        capliststik += `\n➣ ${liststicker[i].replace('.jpg', '')}`
-                    }
-                    piyo.reply(from, capliststik, id)
-                    break
+                // case 'addsticker':
+                //     if (!q) return piyo.reply(from, `Hai  Kak ${pushname} untuk menggunakan fitur save stiker ketik */addsticker* _Nama nya_`, id)
+                //     if (quotedMsg) {
+                //         if (quotedMsg.type === 'sticker') {
+                //             try {
+                //                 mediaData = await decryptMedia(quotedMsg, uaOverride)
+                //                 fs.writeFileSync(`./media/sticker/${encodeURIComponent(q)}.jpg`, mediaData)
+                //                 piyo.reply(from, `Stiker berhasil tersimpan!\n\nUntuk melihat list ketik */liststiker*`, id)
+                //             } catch (err) {
+                //                 piyo.reply(from, `Gagal save sticker!`, id)
+                //                 piyo.reply(ownerNumber, util.format(err), id)
+                //             }
+                //         } else {
+                //             piyo.reply(from, `Harus reply stiker!`, id)
+                //         }
+                //     } else {
+                //         piyo.reply(from, `Gaada data yang direply gan`, id)
+                //     }
+                //     break
+                // case 'liststicker':
+                //     const liststicker = fs.readdirSync('./media/sticker/')
+                //     let capliststik = `Ketik perintah */getstiker _Nama nya_* untuk mengambil data stiker\n\n*Jumlah stiker* : ${liststicker.length}\n\n*Stiker tersimpan :*\n`
+                //     for (let i = 0; i < liststicker.length; i++) {
+                //         capliststik += `\n➣ ${liststicker[i].replace('.jpg', '')}`
+                //     }
+                //     piyo.reply(from, capliststik, id)
+                //     break
 
                 case 'getsticker':
                     if (!q) return piyo.reply(from, `Hai Kak ${pushname} untuk menggunakan fitur get stiker ketik */getstiker* _Nama nya_`, id)

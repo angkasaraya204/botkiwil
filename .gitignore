@@ -52,6 +52,10 @@ typings/
 # dotenv environment variables file
 .env
 .env.test
+.database.db
+database
+_IGNORE_xKiwilx
+xKiwilx.data.json
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 # Next.js build output
@@ -82,3 +86,7 @@ dist
 # end managed
 
 .vercel
+
+# Local Netlify folder
+.netlify
+netlify.toml
