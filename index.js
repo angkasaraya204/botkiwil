@@ -1,131 +1,133 @@
-const { create, Client } = require('@open-wa/wa-automate')
-const figlet = require('figlet')
-const options = require('./utils/options')
-const { color } = require('./utils')
-const { ind, eng } = require('./message/text/lang/')
-const HandleMsg = require('./HandleMsg')
-const fs = require('fs-extra')
-const fss = require('fs')
-const { Console } = require('console')
-/**
- * Uncache if there is file change
- * @param {string} module Module name or path
- * @param {function} cb <optional> 
- */
-const nocache = (module, call = () => { }) => {
-    console.log(color('[WATCH]', 'orange'), color(`=> '${module}'`, 'yellow'), 'file is now being watched by me!')
-    fs.watchFile(require.resolve(module), async () => {
-        await uncache(require.resolve(module))
-        call(module)
-    })
+const cluster = require('cluster');
+const { spawn } = require('child_process');
+const path = require('path');
+const fs = require('fs');
+const os = require('node:os');
+const express = require('express');
+const app = express();
+
+const port = process.env.PORT || 3000;
+
+console.log('\x1b[33m%s\x1b[0m', `🌐 Port ${port} is open`);
+app.get('/', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  const data = {
+    status: 'true',
+    message: 'Bot Successfully Activated!',
+    author: 'xKiwilx'
+  };
+  const result = {
+    response: data
+  };
+  res.send(JSON.stringify(result, null, 2));
+});
+
+function listenOnPort(port) {
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+
+  app.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`Port ${port} is already in use. Trying another port...`);
+      listenOnPort(port + 1);
+    } else {
+      console.error(err);
+    }
+  });
 }
 
-/**
- * Uncache a module
- * @param {string} module Module name or path
- */
-const uncache = (module = '.') => {
-    return new Promise((resolve, reject) => {
-        try {
-            delete require.cache[require.resolve(module)]
-            resolve()
-        } catch (err) {
-            reject(err)
-        }
-    })
+listenOnPort(port);
+
+let isRunning = false;
+
+function start(file) {
+  if (isRunning) return;
+  isRunning = true;
+
+  const args = [path.join(__dirname, file), ...process.argv.slice(2)];
+  const p = spawn(process.argv[0], args, {
+    stdio: ["inherit", "inherit", "inherit", "ipc"],
+  });
+
+  p.on("message", (data) => {
+    console.log('\x1b[36m%s\x1b[0m', `🟢 RECEIVED ${data}`);
+    switch (data) {
+      case "reset":
+        p.kill();
+        isRunning = false;
+        start.apply(this, arguments);
+        break;
+      case "uptime":
+        p.send(process.uptime());
+        break;
+    }
+  });
+
+  p.on("exit", (code) => {
+    isRunning = false;
+    console.error('\x1b[31m%s\x1b[0m', `Exited with code: ${code}`);
+    start('main.js');
+
+    if (code === 0) return;
+
+    fs.watchFile(args[0], () => {
+      fs.unwatchFile(args[0]);
+	  console.error('\x1b[31m%s\x1b[0m', `File ${args[0]} has been modified. Script will restart...`);
+      start("main.js");
+    });
+  });
+
+  p.on("error", (err) => {
+    console.error('\x1b[31m%s\x1b[0m', `Error: ${err}`);
+    p.kill();
+    isRunning = false;
+    console.error('\x1b[31m%s\x1b[0m', `Error occurred. Script will restart...`);
+    start("main.js");
+  });
+
+  const pluginsFolder = path.join(__dirname, "plugins");
+
+  fs.readdir(pluginsFolder, (err, files) => {
+    if (err) {
+      console.error('\x1b[31m%s\x1b[0m', `Error reading plugins folder: ${err}`);
+      return;
+    }
+    console.log('\x1b[33m%s\x1b[0m', `🟡 Found ${files.length} plugins in folder ${pluginsFolder}`);
+    try {
+      require.resolve('@adiwajshing/baileys');
+      console.log('\x1b[33m%s\x1b[0m', `🟡 Baileys library version ${require('@adiwajshing/baileys/package.json').version} is installed`);
+    } catch (e) {
+      console.error('\x1b[31m%s\x1b[0m', `❌ Baileys library is not installed`);
+    }
+  });
+
+  console.log(`🖥️ \x1b[33m${os.type()}\x1b[0m, \x1b[33m${os.release()}\x1b[0m - \x1b[33m${os.arch()}\x1b[0m`);
+  const ramInGB = os.totalmem() / (1024 * 1024 * 1024);
+  console.log(`💾 \x1b[33mTotal RAM: ${ramInGB.toFixed(2)} GB\x1b[0m`);
+  const freeRamInGB = os.freemem() / (1024 * 1024 * 1024);
+  console.log(`💽 \x1b[33mFree RAM: ${freeRamInGB.toFixed(2)} GB\x1b[0m`);
+  console.log('\x1b[33m%s\x1b[0m', `📃 Script by xKiwilx`);
+
+  setInterval(() => {}, 1000);
 }
-require('./HandleMsg')
-nocache('./HandleMsg', module => console.log(`'${module}' Updated!`))
-require('./lib/menu.js')
-nocache('./lib/menu.js', module => console.log(`'${module}' Updated!`))
-const start = (piyo = new Client()) => {
-    console.log(color(figlet.textSync('----------------', { horizontalLayout: 'default' })))
-    console.log(color(figlet.textSync('xKiwilx Bot', { font: 'Ghost', horizontalLayout: 'default' })))
-    console.log(color(figlet.textSync('----------------', { horizontalLayout: 'default' })))
-    console.log(color('[DEV]'), color('xKiwilx', 'yellow'))
-    console.log(color('[~>>]'), color('BOT Started!', 'darkblue'))
 
-    // Mempertahankan sesi agar tetap nyala
-    piyo.onStateChanged((state) => {
-        console.log(color('[~>>]', 'red'), state)
-        if (state === 'CONFLICT' || state === 'UNLAUNCHED') piyo.forceRefocus()
-    })
+start("main.js");
 
-    // ketika bot diinvite ke dalam group
-    piyo.onAddedToGroup(async (chat) => {
-        const groups = await piyo.getAllGroups()
-        // kondisi ketika batas group bot telah tercapai,ubah di file settings/setting.json
-        if (groups.length > groupLimit) {
-            await piyo.sendText(chat.id, `Maap, Bot Sudah melewati batas memasuki group: ${groupLimit}`).then(() => {
-                piyo.leaveGroup(chat.id)
-                piyo.deleteChat(chat.id)
-            })
-        } else {
-            // kondisi ketika batas member group belum tercapai, ubah di file settings/setting.json
-            if (chat.groupMetadata.participants.length < memberLimit) {
-                await piyo.sendText(chat.id, `Member lu kurang , minimal member ${memberLimit} people`).then(() => {
-                    piyo.leaveGroup(chat.id)
-                    piyo.deleteChat(chat.id)
-                })
-            } else {
-                await piyo.simulateTyping(chat.id, true).then(async () => {
-                    await piyo.sendText(chat.id, `Hai, Saya Whatsapp Bot Pintar.  Untuk memulai bot silahkan ketik ${prefix}menu`)
-                })
-            }
-        }
-    })
-
-    // Listen to group's event
-    piyo.onGlobalParticipantsChanged(async (event) => {
-        const welcome = JSON.parse(fs.readFileSync('./settings/welcome.json'))
-        const gcChat = await piyo.getChatById(event.chat)
-        const pcChat = await piyo.getContact(event.who)
-        let { pushname, verifiedName, formattedName } = pcChat
-        pushname = pushname || verifiedName || formattedName
-        const isWelcome = welcome.includes(event.chat)
-        const botNumbers = await piyo.getHostNumber() + '@c.us'
-        const { name } = gcChat
-        const sts = await piyo.getStatus(event.who)
-        try {
-            if (event.action === 'add' && event.who !== botNumbers && isWelcome) {
-                const pic = await piyo.getProfilePicFromServer(event.who)
-                if (pic === undefined) {
-                    var pp = 'http://piyobot.cf/pphana.jpg'
-                } else {
-                    var pp = pic
-                }
-                await piyo.sendFileFromUrl(event.chat, pp, 'profile.jpg', `Selamat datang di grup *${name}*\n*Nama :* ${pushname}\n*Bio :* ${sts.status}\n\nSemoga betah terus di grup kami ya~`)
-            } else if (event.action === 'remove' && event.who !== botNumbers && isWelcome) {
-                await piyo.sendTextWithMentions(event.chat, `@${event.who.replace('@c.us', '')} Yah Dia Keluar`)
-            }
-        } catch (err) {
-            console.error(err)
-        }
-    })
-    piyo.onIncomingCall(async (callData) => {
-        // ketika seseorang menelpon nomor bot akan mengirim pesan
-        await piyo.sendText(callData.peerJid, 'Maaf sedang tidak bisa menerima panggilan.\n nelfon=block \n\n-bot')
-            .then(async () => {
-                // bot akan memblock nomor itu
-                await piyo.contactBlock(callData.peerJid)
-            })
-    })
-
-    // ketika seseorang mengirim pesan
-    piyo.onMessage(async (message) => {
-        piyo.getAmountOfLoadedMessages() // menghapus pesan cache jika sudah 3000 pesan.
-            .then((msg) => {
-                if (msg >= 3000) {
-                    console.log('[PIYOBOT]', color(`Loaded Message Reach ${msg}, cuting message cache...`, 'yellow'))
-                    piyo.cutMsgCache()
-                }
-            })
-        //HandleMsg(piyo, message)    
-        require('./HandleMsg')(piyo, message)
-    })
-
+const tmpDir = './tmp';
+  if (!fs.existsSync(tmpDir)) {
+    fs.mkdirSync(tmpDir);
+    console.log('\x1b[33m%s\x1b[0m', `📁 Created directory ${tmpDir}`);
 }
-//create session
-create(options(true, start))
-    .then((piyo) => start(piyo))
-    .catch((err) => console.log(err))
+
+process.on('unhandledRejection', (reason) => {
+  console.error('\x1b[31m%s\x1b[0m', `Unhandled promise rejection: ${reason}`);
+  console.error('\x1b[31m%s\x1b[0m', 'Unhandled promise rejection. Script will restart...');
+  start('main.js');
+});
+
+process.on('exit', (code) => {
+  console.error(`Exited with code: ${code}`);
+  console.error('Script will restart...');
+  start('main.js');
+});
