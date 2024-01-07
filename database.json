@@ -203,7 +203,7 @@
       "level": 0,
       "pasangan": "",
       "pc": 0,
-      "exp": 3996,
+      "exp": 4018,
       "coin": 0,
       "atm": 0,
       "limit": 500,
@@ -3920,10 +3920,10 @@
       "lastSuccess": 1704547147854
     },
     "owner-cleartmp.js": {
-      "total": 4,
-      "success": 4,
-      "last": 1704621464946,
-      "lastSuccess": 1704621464946
+      "total": 5,
+      "success": 5,
+      "last": 1704624217480,
+      "lastSuccess": 1704624217480
     },
     "sticker-sticker.js": {
       "total": 7,
